@@ -2,6 +2,7 @@
 # long-term updates
 # 1: encrypt password before sending it to file
 # 2: create GUI for app
+### Open in 'rb' to read bytes!!
 
 import os.path
 from os import path
@@ -15,10 +16,17 @@ def CreateCryptKey():
     if path.isfile('encryption_key.txt'):
         pass
     else:
-        with open("encryption_key.txt", "wb") as new_file:
+        with open("encryption_key.txt", "wb") as new_file: # 'wb' so we can write bytes
             crypt_key = Fernet.generate_key()
-            new_file.write(crypt_key)
+            new_file.write(crypt_key) # key still in bytes
             new_file.close()
+
+    if path.isfile('my_passwords.txt'):
+        pass
+    else:
+        with open("my_passwords.txt", "x"):
+            pass
+
 
 
 def AddPassword():
@@ -158,7 +166,21 @@ def End():
             print("Command not recognized. Please enter 'home' for homepage, or 'q' to quit.")
 
 
-Introduction() #starts program
+Introduction() # starts program
+
+def GetCryptKey():
+    with open("encryption_key.txt", "rb") as f:
+        crypt_key = f.read()
+        f.close()
+        fk = Fernet(crypt_key) # instantiates key
+
+def EncryptDict(): #may be merged with DictToFile
+    pass
+def DecryptDict(): # may be merged with FileToDict
+    pass
+
+#turn data to bytes before encrypting with encode
+#For decryption, it will return a bytes object that i might need to decode after
 
 
 #f = Fernet(crypt_key) #instantiate crypt_key
