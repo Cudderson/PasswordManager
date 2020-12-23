@@ -1,16 +1,7 @@
 
-# long-term updates
-# 1: encrypt password before sending it to file
-# 2: create GUI for app
-### Open in 'rb' to read bytes!!
-
 import os.path
 from os import path
 from cryptography.fernet import Fernet
-
-keys = {}  # dict to be read into from file
-
-
 
 def CreateCryptKey():
     if path.isfile('encryption_key.txt'):
@@ -26,3 +17,31 @@ def CreateCryptKey():
     else:
         with open("my_passwords.txt", "x"):
             pass
+
+# get crypt_key:
+CreateCryptKey()
+
+with open("encryption_key.txt", "rb") as f:
+    crypt_key = f.read()
+    f.close()
+
+fk = Fernet(crypt_key)
+
+# Let's start by getting info to read/write from file successfully with encryption
+#a = input('Enter data: ')
+#a = a.encode("UTF-8") # a in bytes
+#encrypted = fk.encrypt(a)
+#print(encrypted) # encrypted message in bytes
+#with open("my_passwords.txt", "wb") as f:
+#    f.write(encrypted)
+#print("data in file....attempting to retrieve and decrypt....")
+#with open("my_passwords.txt", "rb") as f:
+#    secret = f.read()
+#decrypted = fk.decrypt(secret)
+#print(decrypted)
+#decrypted = decrypted.decode()
+#print(decrypted)
+# The above is a working example of encryption/decryption with files
+
+# Next, let's get it working where the user can continually add/access data
+# Needs new format. Perhaps the data could be converted as one single string?
