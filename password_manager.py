@@ -27,42 +27,37 @@ with open("encryption_key.txt", "rb") as f:
 
 fk = Fernet(crypt_key)
 
-# Let's start by getting info to read/write from file successfully with encryption
-#a = input('Enter data: ')
-#a = a.encode("UTF-8") # a in bytes
-#encrypted = fk.encrypt(a)
-#print(encrypted) # encrypted message in bytes
-#with open("my_passwords.txt", "wb") as f:
-#    f.write(encrypted)
-#print("data in file....attempting to retrieve and decrypt....")
-#with open("my_passwords.txt", "rb") as f:
-#    secret = f.read()
-#decrypted = fk.decrypt(secret)
-#print(decrypted)
-#decrypted = decrypted.decode()
-#print(decrypted)
-# The above is a working example of encryption/decryption with files
+def AddPassword():
+    new_id = input("New ID (ex. 'Twitter'): ")
+    new_pass = input("New Password for " + new_id + ": ")
+    plain_string = "Your password for " + new_id + " is: " + new_pass
+    plain_string = plain_string.encode("UTF-8")
+    print(plain_string)
+    secret = fk.encrypt(plain_string)
+    secret = secret.decode()
 
-# Next, let's get it working where the user can continually add/access data
-# Needs new format. Perhaps the data could be converted as one single string?
-# Maybe we can turn encrypted bytes into a string, then save to file (would make working with files easier
-a = input("Username: ")
-b = input("Password: ")
-c = "Your password for " + a + " is: " + b
-c = c.encode("UTF-8")
-print(c)
-secret = fk.encrypt(c)
-secret = secret.decode()
+    with open("my_passwords.txt", "a") as f:
+        f.write(secret)
+        f.write("\n")
 
-with open("my_passwords.txt", "a") as f:
-    f.write(secret)
-    f.write("\n")
-
-with open("my_passwords.txt", "r") as f:
-    line = f.readline()
-    while line != "":
-        line = line.encode()
-        decrypted = fk.decrypt(line)
-        print(decrypted)
+def ViewPasswords():
+    with open("my_passwords.txt", "r") as f:
         line = f.readline()
+        while line != "":
+            line = line.encode()
+            decrypted = fk.decrypt(line)
+            print(decrypted.decode())
+            line = f.readline()
 
+# current state: viewing and adding work. Next, it would be good to have functionality for
+# changing a password, or deleting one.
+while True:
+    mode = input("Welcome to Password Manager!\n"
+          "Type 'v' to view your passwords\n"
+          "Type 'a' to add a new password: ")
+    if mode == 'v':
+        ViewPasswords()
+    elif mode == 'a':
+        AddPassword()
+    else:
+        break
