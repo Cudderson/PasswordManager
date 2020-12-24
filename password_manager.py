@@ -45,3 +45,24 @@ fk = Fernet(crypt_key)
 
 # Next, let's get it working where the user can continually add/access data
 # Needs new format. Perhaps the data could be converted as one single string?
+# Maybe we can turn encrypted bytes into a string, then save to file (would make working with files easier
+a = input("Username: ")
+b = input("Password: ")
+c = "Your password for " + a + " is: " + b
+c = c.encode("UTF-8")
+print(c)
+secret = fk.encrypt(c)
+secret = secret.decode()
+
+with open("my_passwords.txt", "a") as f:
+    f.write(secret)
+    f.write("\n")
+
+with open("my_passwords.txt", "r") as f:
+    line = f.readline()
+    while line != "":
+        line = line.encode()
+        decrypted = fk.decrypt(line)
+        print(decrypted)
+        line = f.readline()
+
