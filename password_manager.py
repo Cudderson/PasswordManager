@@ -81,7 +81,7 @@ def ModifyPassword():
                     for plain_data in temp_list:
                         plain_data = plain_data.encode("UTF-8")
                         e_data = fk.encrypt(plain_data)
-                        e_data = e_data.decode()  # normal string now (encrypted)
+                        e_data = e_data.decode()
                         f.write(e_data)
                         f.write("\n")
                     print("DONEZO")
@@ -95,12 +95,11 @@ def ModifyPassword():
                     temp_list.append(data.replace(pass_to_mod, new_pass))
                     print(temp_list)
                     print("^^^new data")
-                    # works up to here. just need to write data back into file
                     with open("my_passwords.txt", "w") as f:
                         for plain_data in temp_list:
                             plain_data = plain_data.encode("UTF-8")
                             e_data = fk.encrypt(plain_data)
-                            e_data = e_data.decode() #normal string now (encrypted)
+                            e_data = e_data.decode()
                             f.write(e_data)
                             f.write("\n")
                     print("DONE")
@@ -108,8 +107,6 @@ def ModifyPassword():
                 else:
                     print("Operation cancelled. Nothing was altered.")
                     quit()
-                # tell user to enter password for id to change. ask user what new password should be.
-                # replace old password with new password, then overwrite new data to file (later)
             else:
                 print("Operation cancelled. Nothing was altered.")
                 quit()
