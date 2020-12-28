@@ -2,6 +2,7 @@
 import os.path
 from os import path
 from cryptography.fernet import Fernet
+import time
 
 def CreateCryptKey():
     if path.isfile('encryption_key.txt'):
@@ -32,7 +33,9 @@ fk = Fernet(crypt_key)
 
 def AddPassword():
     new_id = input("New ID (ex. 'Twitter'): ")
+    time.sleep(1)
     new_pass = input("New Password for " + new_id + ": ")
+    time.sleep(1)
     plain_string = "Your password for " + new_id + " is: " + new_pass
     plain_string = plain_string.encode("UTF-8")
     print(plain_string)
