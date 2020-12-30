@@ -1,16 +1,16 @@
-
 import os.path
 from os import path
 from cryptography.fernet import Fernet
 import time
 
+
 def CreateCryptKey():
     if path.isfile('encryption_key.txt'):
         pass
     else:
-        with open("encryption_key.txt", "wb") as new_file: # 'wb' so we can write bytes
+        with open("encryption_key.txt", "wb") as new_file:  # 'wb' so we can write bytes
             crypt_key = Fernet.generate_key()
-            new_file.write(crypt_key) # key still in bytes
+            new_file.write(crypt_key)  # key still in bytes
             new_file.close()
 
     if path.isfile('my_passwords.txt'):
@@ -18,6 +18,7 @@ def CreateCryptKey():
     else:
         with open("my_passwords.txt", "x"):
             pass
+
 
 # get crypt_key:
 CreateCryptKey()
@@ -28,9 +29,6 @@ with open("encryption_key.txt", "rb") as f:
 
 fk = Fernet(crypt_key)
 
-# All current functionality working.
-# Next, work on dialogue smoothness/readability, and patch holes in the dialogue
-
 def AddPassword():
     new_id = input("New ID (ex. 'Twitter'): ")
     time.sleep(1)
@@ -38,13 +36,14 @@ def AddPassword():
     time.sleep(1)
     plain_string = "Your password for " + new_id + " is: " + new_pass
     plain_string = plain_string.encode("UTF-8")
-    print(plain_string)
     secret = fk.encrypt(plain_string)
     secret = secret.decode()
 
     with open("my_passwords.txt", "a") as f:
         f.write(secret)
         f.write("\n")
+        print("\nSuccessfully saved data for ID: " + new_id + " with password: " + new_pass)
+
 
 def ViewPasswords():
     with open("my_passwords.txt", "r") as f:
@@ -78,7 +77,7 @@ def ModifyPassword():
             mod_or_rem = input("Type 'm' to modify\n"
                                "Type 'r' to remove\n"
                                "Type 'q' to quit: ")
-            if mod_or_rem == 'r': # this 'if' works as intended!
+            if mod_or_rem == 'r':  # this 'if' works as intended!
                 temp_list.remove(data)
                 with open("my_passwords.txt", "w") as f:
                     for plain_data in temp_list:
@@ -93,7 +92,7 @@ def ModifyPassword():
                 new_pass = input("Enter your new password for " + id_to_mod + ": ")
                 print("Ready to change password for " + id_to_mod + " from " + pass_to_mod + " to " + new_pass + ",")
                 confirm_new_pass = input("Type 'confirm' to apply change, or type 'q' to quit: ")
-                if confirm_new_pass == 'confirm': #this entire 'if' works as intended
+                if confirm_new_pass == 'confirm':  # this entire 'if' works as intended
                     temp_list.remove(data)
                     temp_list.append(data.replace(pass_to_mod, new_pass))
                     print(temp_list)
@@ -114,16 +113,29 @@ def ModifyPassword():
                 print("Operation cancelled. Nothing was altered.")
                 quit()
 
+
 while True:
-    mode = input("Welcome to Password Manager!\n"
-          "Type 'v' to view your passwords\n"
-          "Type 'a' to add a new password\n"
-          "Type 'm' to modify passwords: ")
+    mode = input("\nWelcome to Password Manager!\n"
+                 "Type 'v' to view your passwords\n"
+                 "Type 'a' to add a new password\n"
+                 "Type 'm' to modify passwords\n"
+                 "Type 'q' to quit: ")
     if mode == 'v':
+        print("\n")
         ViewPasswords()
     elif mode == 'a':
+        print("\n")
         AddPassword()
     elif mode == 'm':
+        print("\n")
         ModifyPassword()
+    elif mode == 'q':
+        print("\n" + "Quitting program. Thank you for using Password Manager.")
+        quit()
     else:
-        break
+        print("\n" + "Your input was not recognized. Please enter one of the given commands.")
+
+# idea: initialize program start with user providing pin number (allows access to decrypting info from file)
+#       -pin number stored in file similar to the other text files
+#       -if pin is incorrect, program quits.
+# if you do this, make sure to update the .gitignore file
