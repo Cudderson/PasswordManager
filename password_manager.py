@@ -3,12 +3,8 @@ from cryptography.fernet import Fernet
 import time
 
 # This branch will add final features and finalize product
-# 1st feature: master password or pin number for authentication
+# 1st feature: master password or pin number for authentication (*complete*)
 # 2nd feature(maybe): SQL database to parallel file writing, for extra safety
-
-# 1st feature steps:
-# - add option to change master password in modify function
-# - when master password is changed, hint should be changed too.
 
 def Introduction():
     with open("pmpin.txt", "r") as f:
@@ -54,7 +50,7 @@ def Introduction():
             quit()
         else:
             print("Couldn't understand command. Quitting program.")
-            time.sleep()
+            time.sleep(.8)
             quit()
 
 def CreateCryptKey():
@@ -237,6 +233,54 @@ def ModifyPassword():
             else:
                 print("\nOperation cancelled. Nothing was altered.")
 
+def ChangeMaster():
+    with open("pmpin.txt", "r") as f:
+        e_master_password = f.read()
+        e_master_password = e_master_password.encode()
+        master_password = fk.decrypt(e_master_password)
+        master_password = master_password.decode()
+
+    print("Your current master password is: " + master_password + "\n")
+    new_master = input("Enter your new master password: ")
+    time.sleep(.8)
+    new_master2 = input("Enter your new master password again: ")
+    time.sleep(.8)
+    if new_master == new_master2:
+        print("\n" + "Ready to change master password from '" + master_password + "' to '" + new_master + "'\n")
+        time.sleep(.8)
+        finalize = input("Type 'confirm' to finalize change: ")
+        time.sleep(.8)
+
+        if finalize == 'confirm':
+            print("\n" + "Before the change is made, please include a hint/clue for your new master password: " + new_master)
+            new_hint = input("Hint: ")
+            time.sleep(.8)
+
+            new_hint_e = new_hint.encode()
+            secret_hint = fk.encrypt(new_hint_e)
+            secret_hint = secret_hint.decode()
+
+            new_master_e = new_master.encode()
+            secret_master = fk.encrypt(new_master_e)
+            secret_master = secret_master.decode()
+
+            with open("pmpin.txt", "w") as f:
+                f.write(secret_master)
+            with open("master_hint.txt", "w") as f:
+                f.write(secret_hint)
+
+            print("\n" + "Your master password has been changed successfully! Don't lose it!!!\n")
+            time.sleep(.8)
+
+        else:
+            print("\n" + "Command not recognized. Nothing was changed.\n")
+            time.sleep(1)
+            print("Rerouting...")
+            time.sleep(.8)
+    else:
+        print("Passwords did not match. Nothing was altered.")
+        time.sleep(1)
+
 def ViewEncryptedFile():
     print("Here is your secret encrypted data on file:\n")
     time.sleep(.8)
@@ -253,6 +297,7 @@ while True:
     mode = input("\nType 'v' to view your passwords\n"
                  "Type 'a' to add a new password\n"
                  "Type 'm' to modify passwords\n"
+                 "Type 'c' to change master password\n"
                  "Type 'e' to view your encrypted file\n"
                  "Type 'q' to quit: ")
     if mode == 'v':
@@ -271,5 +316,8 @@ while True:
     elif mode == 'e':
         print("\n")
         ViewEncryptedFile()
+    elif mode == 'c':
+        print("\n")
+        ChangeMaster()
     else:
         print("\n" + "Your input was not recognized. Please enter one of the given commands.")
