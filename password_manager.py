@@ -6,12 +6,56 @@ import time
 # 1st feature: master password or pin number for authentication
 # 2nd feature(maybe): SQL database to parallel file writing, for extra safety
 
+# 1st feature steps:
+# - add option to change master password in modify function
+# - when master password is changed, hint should be changed too.
 
 def Introduction():
-    print("Welcome to Password Manager!")
-    time.sleep(.2)
-    print("Your passwords will be encrypted and decrypted for viewing here.")
+    with open("pmpin.txt", "r") as f:
+        e_master_password = f.read()
+        e_master_password = e_master_password.encode()
+        master_password = fk.decrypt(e_master_password)
+        master_password = master_password.decode()
+    print("--------------------------------------------")
+    master_user = input("To gain access to Password Manager, please provide your Master password: ")
     time.sleep(1)
+    if master_user == master_password:
+        print("Access granted!")
+        time.sleep(1)
+        print("--------------------------------------------")
+        print("Welcome to Password Manager!")
+        time.sleep(.2)
+        print("Your passwords will be encrypted and decrypted for viewing here.")
+        time.sleep(1)
+    else:
+        print("Umm.. that's not the Master password we were looking for.\n")
+        print("To try again, enter 't'\n"
+              "To get help, enter 'h'\n"
+              "To quit, enter 'q'\n")
+        retry = input("Enter mode: ")
+        if retry == 't':
+            Introduction()
+        elif retry == 'h':
+            print("Luckily, you saved a hint/clue for your Master password!\nHint:\n")
+            time.sleep(1)
+            with open("master_hint.txt", "r") as f:
+                e_hint = f.read()
+                e_hint = e_hint.encode()
+                hint = fk.decrypt(e_hint)
+                hint = hint.decode()
+            print(hint + "\n")
+            time.sleep(.8)
+            print("Let's try again. Rerouting...")
+            time.sleep(1)
+            Introduction()
+        elif retry == 'q':
+            time.sleep(1)
+            print("Come again!")
+            quit()
+        else:
+            print("Couldn't understand command. Quitting program.")
+            time.sleep()
+            quit()
 
 def CreateCryptKey():
     if path.isfile('encryption_key.txt'):
@@ -22,19 +66,81 @@ def CreateCryptKey():
             new_file.write(crypt_key)  # key still in bytes
             new_file.close()
 
+def CreateFiles():
     if path.isfile('my_passwords.txt'):
         pass
     else:
         with open("my_passwords.txt", "x"):
             pass
 
+    if path.isfile('pmpin.txt'):
+        pass
+    else:
+        with open("pmpin.txt", "x"):
+            pass
+
+    if path.isfile('master_hint.txt'):
+        pass
+    else:
+        with open('master_hint.txt', "x"):
+            pass
+
 def Requirements():
     CreateCryptKey()
+    CreateFiles()
     with open("encryption_key.txt", "rb") as f:
         crypt_key = f.read()
         f.close()
+
     global fk
     fk = Fernet(crypt_key)
+
+    with open('pmpin.txt', 'r') as f:
+        pin_exists = f.read(1)
+    if pin_exists:
+        pass
+    else:
+        time.sleep(1)
+        print("Hello! Before we get started, you will need to create a Master password.\n"
+              "This 'Master' password will be encrypted before it's saved, so don't forget it!\n"
+              "You will need your Master password whenever you want to access Password Manager.\n")
+        master_p = input("Enter your new master password: ")
+        master_p2 = input("Enter your new master password again: ")
+        if master_p == master_p2:
+            print("Great! Now, add a hint or clue for your Master password!")
+            print("Your hint will be encrypted as well for security.")
+            time.sleep(.8)
+            hint = input("Hint/Clue for Master password '" + master_p + "': ")
+            time.sleep(.8)
+            print("\nReady to save new Master password '" + master_p + "' with hint '" + hint + "'")
+            time.sleep(.8)
+            master_confirm = input("Type 'confirm' to save your Master password and get started!: ")
+
+            if master_confirm == 'confirm':
+                time.sleep(1)
+                master_e = master_p.encode("UTF-8")
+                secret_master = fk.encrypt(master_e)
+                secret_master = secret_master.decode()
+
+                hint_e = hint.encode("UTF-8")
+                secret_hint = fk.encrypt(hint_e)
+                secret_hint = secret_hint.decode()
+
+                with open("pmpin.txt", "w") as f:
+                    f.write(secret_master)
+
+                with open("master_hint.txt", "w") as f:
+                    f.write(secret_hint)
+
+                print("New master password successfully saved! Enjoy using Password Manager!\n")
+                print("-----------------------------------------")
+                time.sleep(1)
+            else:
+                print("Command '" + master_confirm + "' not recognized. Let's try again.")
+                Requirements()
+        else:
+            print("Passwords did not match. Let's try again.")
+            Requirements()
 
 def AddPassword():
     new_id = input("New ID (ex. 'Twitter'): ")
