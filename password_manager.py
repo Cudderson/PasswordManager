@@ -2,6 +2,11 @@ from os import path
 from cryptography.fernet import Fernet
 import time
 
+# This branch will add final features and finalize product
+# 1st feature: master password or pin number for authentication
+# 2nd feature(maybe): SQL database to parallel file writing, for extra safety
+
+
 def Introduction():
     print("Welcome to Password Manager!")
     time.sleep(.2)
