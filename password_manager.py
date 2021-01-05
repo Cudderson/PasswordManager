@@ -3,7 +3,7 @@ from cryptography.fernet import Fernet
 import time
 
 # This branch will add final features and finalize product
-# 1st feature: master password or pin number for authentication (*complete*)
+# Next feature: convert strings to f-strings and add proper docstrings
 # 2nd feature(maybe): SQL database to parallel file writing, for extra safety
 
 def Introduction():
@@ -144,16 +144,23 @@ def AddPassword():
     new_pass = input("New Password for " + new_id + ": ")
     time.sleep(.8)
     plain_string = "Your password for " + new_id + " is: " + new_pass
-    time.sleep(.8)
-    plain_string = plain_string.encode("UTF-8")
-    secret = fk.encrypt(plain_string)
-    secret = secret.decode()
+    print(plain_string)
+    confirm_add = input("If this is correct, type 'confirm', or type 'q' to cancel: ")
+    if confirm_add == 'confirm':
+        time.sleep(.8)
+        plain_string = plain_string.encode("UTF-8")
+        secret = fk.encrypt(plain_string)
+        secret = secret.decode()
 
-    with open("my_passwords.txt", "a") as f:
-        f.write(secret)
-        f.write("\n")
-        print("\nSuccessfully encrypted and saved data for ID: " + new_id + " with password: " + new_pass)
-        time.sleep(1)
+        with open("my_passwords.txt", "a") as f:
+            f.write(secret)
+            f.write("\n")
+            print("\nSuccessfully encrypted and saved data for ID: " + new_id + " with password: " + new_pass)
+            time.sleep(1)
+    else:
+        time.sleep(.8)
+        print("\nOperation cancelled. Rerouting to main menu...")
+        time.sleep(.8)
 
 def ViewPasswords():
     print("Decrypting your file...")
