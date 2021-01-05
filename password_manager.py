@@ -2,11 +2,12 @@ from os import path
 from cryptography.fernet import Fernet
 import time
 
-# This branch will add final features and finalize product
-# Next feature: convert strings to f-strings and add proper docstrings
+# This branch will add final features and finalize project
+# Next feature: convert strings to f-strings and add proper docstrings (***complete***)
 # 2nd feature(maybe): SQL database to parallel file writing, for extra safety
 
 def Introduction():
+    """Decrypts master password and handles initial log in"""
     with open("pmpin.txt", "r") as f:
         e_master_password = f.read()
         e_master_password = e_master_password.encode()
@@ -54,6 +55,9 @@ def Introduction():
             quit()
 
 def CreateCryptKey():
+    """Generates and stores a key in new file, if it does not yet exist
+    Key used to encrypt, decrypt all file data
+    """
     if path.isfile('encryption_key.txt'):
         pass
     else:
@@ -63,6 +67,7 @@ def CreateCryptKey():
             new_file.close()
 
 def CreateFiles():
+    """Creates files for passwords, master password, and master password hint"""
     if path.isfile('my_passwords.txt'):
         pass
     else:
@@ -82,6 +87,10 @@ def CreateFiles():
             pass
 
 def Requirements():
+    """Instantiates our key for universal use,
+    and prompts user to create master password if they haven't already.
+    Master password is then encrypted and stored in file.
+    """
     CreateCryptKey()
     CreateFiles()
     with open("encryption_key.txt", "rb") as f:
@@ -103,12 +112,12 @@ def Requirements():
         master_p = input("Enter your new master password: ")
         master_p2 = input("Enter your new master password again: ")
         if master_p == master_p2:
-            print("Great! Now, add a hint or clue for your Master password!")
+            print("\nGreat! Now, add a hint or clue for your Master password!")
             print("Your hint will be encrypted as well for security.")
             time.sleep(.8)
             hint = input("Hint/Clue for Master password '" + master_p + "': ")
             time.sleep(.8)
-            print("\nReady to save new Master password '" + master_p + "' with hint '" + hint + "'")
+            print(f"\nReady to save new Master password: '{master_p}', with hint: '{hint}'")
             time.sleep(.8)
             master_confirm = input("Type 'confirm' to save your Master password and get started!: ")
 
@@ -128,17 +137,20 @@ def Requirements():
                 with open("master_hint.txt", "w") as f:
                     f.write(secret_hint)
 
-                print("New master password successfully saved! Enjoy using Password Manager!\n")
-                print("-----------------------------------------")
+                print("\nNew master password successfully saved! Enjoy using Password Manager!\n")
+                print("--------------------------------------------")
                 time.sleep(1)
             else:
-                print("Command '" + master_confirm + "' not recognized. Let's try again.")
+                print(f"Command '{master_confirm}' not recognized. Let's try again.")
                 Requirements()
         else:
             print("Passwords did not match. Let's try again.")
             Requirements()
 
 def AddPassword():
+    """Dialogue for adding new passwords to file.
+    Function also encrypts and stores data in file.
+    """
     new_id = input("New ID (ex. 'Twitter'): ")
     time.sleep(.8)
     new_pass = input("New Password for " + new_id + ": ")
@@ -155,7 +167,7 @@ def AddPassword():
         with open("my_passwords.txt", "a") as f:
             f.write(secret)
             f.write("\n")
-            print("\nSuccessfully encrypted and saved data for ID: " + new_id + " with password: " + new_pass)
+            print(f"\nSuccessfully encrypted and saved data for ID: {new_id} with password: {new_pass}")
             time.sleep(1)
     else:
         time.sleep(.8)
@@ -163,6 +175,7 @@ def AddPassword():
         time.sleep(.8)
 
 def ViewPasswords():
+    """Reads data from file, decrypts it, and presents it in English for the user"""
     print("Decrypting your file...")
     time.sleep(2)
     with open("my_passwords.txt", "r") as f:
@@ -175,6 +188,9 @@ def ViewPasswords():
     time.sleep(1)
 
 def ModifyPassword():
+    """Dialogue for modifying passwords on file, or removing them.
+    This function decrypts file to read, as well as encrypts new data and writes to file
+    """
     print("Decrypting file...")
     time.sleep(.8)
     print("\nMake sure to type ID/Password identical to how it is provided. Otherwise, changes may not commit!\n")
@@ -190,8 +206,9 @@ def ModifyPassword():
             temp_list.append(decrypted)
             line = f.readline()
     time.sleep(.8)
-    id_to_mod = input("\nPlease input the ID or Password  you would like to modify/remove (ex. 'Playstation': ")
+    id_to_mod = input("\nPlease input the ID or Password you would like to modify/remove (ex. 'Playstation': ")
     time.sleep(.8)
+
     for data in temp_list:
         z = data.find(id_to_mod)
         if z == -1:
@@ -199,10 +216,11 @@ def ModifyPassword():
         else:
             print("\n" + data)
             time.sleep(.8)
-            print("\nWould you like to modify your password for " + id_to_mod + ", or remove it from record?: ")
+            print(f"\nWould you like to modify your password for {id_to_mod}, or remove it from record?: ")
             mod_or_rem = input("Type 'm' to modify\n"
                                "Type 'r' to remove\n"
                                "Type 'q' to quit: ")
+
             if mod_or_rem == 'r':
                 temp_list.remove(data)
                 with open("my_passwords.txt", "w") as f:
@@ -213,18 +231,21 @@ def ModifyPassword():
                         f.write(e_data)
                         f.write("\n")
                 time.sleep(.8)
-                print("\nSuccessfully deleted data for " + id_to_mod + ".")
+                print(f"\nSuccessfully deleted data for {id_to_mod}.")
+
             elif mod_or_rem == 'm':
                 pass_to_mod = input("Enter your current password for " + id_to_mod + ": ")
                 new_pass = input("Enter your new password for " + id_to_mod + ": ")
                 time.sleep(.8)
-                print("Ready to change password for " + id_to_mod + " from " + pass_to_mod + " to " + new_pass + ",")
+                print(f"Ready to change password for {id_to_mod} from '{pass_to_mod}' to '{new_pass}',")
                 confirm_new_pass = input("Type 'confirm' to apply change, or type 'q' to quit: ")
-                if confirm_new_pass == 'confirm':  # this entire 'if' works as intended
+
+                if confirm_new_pass == 'confirm':
                     temp_list.remove(data)
                     temp_list.append(data.replace(pass_to_mod, new_pass))
                     print("New data:")
                     print(temp_list)
+
                     with open("my_passwords.txt", "w") as f:
                         for plain_data in temp_list:
                             plain_data = plain_data.encode("UTF-8")
@@ -233,6 +254,7 @@ def ModifyPassword():
                             f.write(e_data)
                             f.write("\n")
                     time.sleep(.8)
+
                     print("\nNew data successfully saved.")
                     break
                 else:
@@ -241,25 +263,27 @@ def ModifyPassword():
                 print("\nOperation cancelled. Nothing was altered.")
 
 def ChangeMaster():
+    """Reads & decrypts master password.
+    Provides dialogue for updating the master password as well as its clue/hint."""
     with open("pmpin.txt", "r") as f:
         e_master_password = f.read()
         e_master_password = e_master_password.encode()
         master_password = fk.decrypt(e_master_password)
         master_password = master_password.decode()
 
-    print("Your current master password is: " + master_password + "\n")
+    print(f"Your current master password is: {master_password}\n")
     new_master = input("Enter your new master password: ")
     time.sleep(.8)
     new_master2 = input("Enter your new master password again: ")
     time.sleep(.8)
     if new_master == new_master2:
-        print("\n" + "Ready to change master password from '" + master_password + "' to '" + new_master + "'\n")
+        print(f"\nReady to change master password from '{master_password}' to '{new_master}'\n")
         time.sleep(.8)
         finalize = input("Type 'confirm' to finalize change: ")
         time.sleep(.8)
 
         if finalize == 'confirm':
-            print("\n" + "Before the change is made, please include a hint/clue for your new master password: " + new_master)
+            print(f"\nBefore the change is made, please include a hint/clue for your new master password: {new_master}")
             new_hint = input("Hint: ")
             time.sleep(.8)
 
@@ -289,6 +313,10 @@ def ChangeMaster():
         time.sleep(1)
 
 def ViewEncryptedFile():
+    """Bonus Feature:
+    Prints the users password file (still encrypted)
+    Proof for user that their data is being encrypted
+    """
     print("Here is your secret encrypted data on file:\n")
     time.sleep(.8)
     with open("my_passwords.txt", "r") as f:
