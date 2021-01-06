@@ -1,10 +1,10 @@
 Password Manager with Fernet Cryptography
-- program saves encrypted passwords on program-created text file.
-- users can use the program to access the files and decrypt their passwords, as well as modify them.
-- more secure than storing passwords on your smart phone notepad.
+- A more secure way to store personal information
+- Program uses a generated key to encrypt and save passwords to file
+- Users can quickly add, view, and modify their passwords safely
 
 Skills used:
 - File I/O
 - Fernet cryptography
-- data-type management
-- control flow
+- Data-Type Management
+- Control Flow
