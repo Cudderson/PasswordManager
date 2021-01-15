@@ -8,7 +8,7 @@ pw_db = mysql.connector.connect(
     database='pw_db'
 )
 
-
+# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema.
 # TASK: set up table structure for project
 #   - one table holding user info, one holding (encrypted) passwords. attached by primary key 'entry'
 # TASK: successfully read/write to database
