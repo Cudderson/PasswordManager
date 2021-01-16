@@ -2,13 +2,11 @@ from os import path
 from cryptography.fernet import Fernet
 import time
 
-# This branch will add final features and finalize project
-# Next feature: convert strings to f-strings and add proper docstrings (***complete***)
-# 2nd feature(maybe): SQL database to parallel file writing, for extra safety
+# TASK*: Comment where sql queries will replace file read/writes
 
 def Introduction():
     """Decrypts master password and handles initial log in"""
-    with open("pmpin.txt", "r") as f:
+    with open("pmpin.txt", "r") as f: # <-- Sql master key
         e_master_password = f.read()
         e_master_password = e_master_password.encode()
         master_password = fk.decrypt(e_master_password)
@@ -35,7 +33,7 @@ def Introduction():
         elif retry == 'h':
             print("Luckily, you saved a hint/clue for your Master password!\nHint:\n")
             time.sleep(1)
-            with open("master_hint.txt", "r") as f:
+            with open("master_hint.txt", "r") as f: # sql query, may change this part
                 e_hint = f.read()
                 e_hint = e_hint.encode()
                 hint = fk.decrypt(e_hint)
@@ -58,7 +56,7 @@ def CreateCryptKey():
     """Generates and stores a key in new file, if it does not yet exist
     Key used to encrypt, decrypt all file data
     """
-    if path.isfile('encryption_key.txt'):
+    if path.isfile('encryption_key.txt'): # SQL query (during fernet stage)
         pass
     else:
         with open("encryption_key.txt", "wb") as new_file:  # 'wb' so we can write bytes
@@ -68,6 +66,7 @@ def CreateCryptKey():
 
 def CreateFiles():
     """Creates files for passwords, master password, and master password hint"""
+    # SQL QUERIES instead of file writes
     if path.isfile('my_passwords.txt'):
         pass
     else:
@@ -93,14 +92,14 @@ def Requirements():
     """
     CreateCryptKey()
     CreateFiles()
-    with open("encryption_key.txt", "rb") as f:
+    with open("encryption_key.txt", "rb") as f: # SQL
         crypt_key = f.read()
         f.close()
 
     global fk
     fk = Fernet(crypt_key)
 
-    with open('pmpin.txt', 'r') as f:
+    with open('pmpin.txt', 'r') as f: # SQL
         pin_exists = f.read(1)
     if pin_exists:
         pass
@@ -131,10 +130,10 @@ def Requirements():
                 secret_hint = fk.encrypt(hint_e)
                 secret_hint = secret_hint.decode()
 
-                with open("pmpin.txt", "w") as f:
+                with open("pmpin.txt", "w") as f: # sql write
                     f.write(secret_master)
 
-                with open("master_hint.txt", "w") as f:
+                with open("master_hint.txt", "w") as f: # sql write
                     f.write(secret_hint)
 
                 print("\nNew master password successfully saved! Enjoy using Password Manager!\n")
@@ -164,7 +163,7 @@ def AddPassword():
         secret = fk.encrypt(plain_string)
         secret = secret.decode()
 
-        with open("my_passwords.txt", "a") as f:
+        with open("my_passwords.txt", "a") as f: # sql write
             f.write(secret)
             f.write("\n")
             print(f"\nSuccessfully encrypted and saved data for ID: {new_id} with password: {new_pass}")
@@ -178,7 +177,7 @@ def ViewPasswords():
     """Reads data from file, decrypts it, and presents it in English for the user"""
     print("Decrypting your file...")
     time.sleep(2)
-    with open("my_passwords.txt", "r") as f:
+    with open("my_passwords.txt", "r") as f: # sql select/fetch then decrypt
         line = f.readline()
         while line != "":
             line = line.encode()
@@ -196,7 +195,7 @@ def ModifyPassword():
     print("\nMake sure to type ID/Password identical to how it is provided. Otherwise, changes may not commit!\n")
     time.sleep(.8)
     temp_list = []
-    with open("my_passwords.txt", "r") as f:
+    with open("my_passwords.txt", "r") as f: # sql read
         line = f.readline()
         while line != "":
             line = line.encode()
@@ -223,7 +222,7 @@ def ModifyPassword():
 
             if mod_or_rem == 'r':
                 temp_list.remove(data)
-                with open("my_passwords.txt", "w") as f:
+                with open("my_passwords.txt", "w") as f: # sql write
                     for plain_data in temp_list:
                         plain_data = plain_data.encode("UTF-8")
                         e_data = fk.encrypt(plain_data)
@@ -246,7 +245,7 @@ def ModifyPassword():
                     print("New data:")
                     print(temp_list)
 
-                    with open("my_passwords.txt", "w") as f:
+                    with open("my_passwords.txt", "w") as f: # sql write
                         for plain_data in temp_list:
                             plain_data = plain_data.encode("UTF-8")
                             e_data = fk.encrypt(plain_data)
@@ -265,7 +264,7 @@ def ModifyPassword():
 def ChangeMaster():
     """Reads & decrypts master password.
     Provides dialogue for updating the master password as well as its clue/hint."""
-    with open("pmpin.txt", "r") as f:
+    with open("pmpin.txt", "r") as f: # sql master table
         e_master_password = f.read()
         e_master_password = e_master_password.encode()
         master_password = fk.decrypt(e_master_password)
@@ -295,7 +294,7 @@ def ChangeMaster():
             secret_master = fk.encrypt(new_master_e)
             secret_master = secret_master.decode()
 
-            with open("pmpin.txt", "w") as f:
+            with open("pmpin.txt", "w") as f: # write new sql pass and hint
                 f.write(secret_master)
             with open("master_hint.txt", "w") as f:
                 f.write(secret_hint)
@@ -319,7 +318,7 @@ def ViewEncryptedFile():
     """
     print("Here is your secret encrypted data on file:\n")
     time.sleep(.8)
-    with open("my_passwords.txt", "r") as f:
+    with open("my_passwords.txt", "r") as f: # sql read
         line = f.read()
         print(line)
     time.sleep(.8)
