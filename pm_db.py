@@ -8,17 +8,39 @@ pw_db = mysql.connector.connect(
     database='pw_db'
 )
 
-# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema.
-# TASK: set up table structure for project
-#   - one table holding user info, one holding (encrypted) passwords. attached by primary key 'entry'
-# TASK: successfully read/write to database
+# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
+# TASK: set up table structure for project***
+# TASK*: successfully read/write to database
 # TASK: successfully read/write to database with fernet
+# TASK: mirror functionality from original passwordmanager program (master password later)
+
+# Table structure (encryption later):
+#   1: Sites (entry_number (PK), site_name)
+#   2: Passwords (entry_number (PK), password)
+
 
 # cursor for interacting with database
 my_cursor = pw_db.cursor()
+#  -------------------working syntax---------------------------
 
-# pw_db.commit() <-- must run this line to commit changes to database
-# my_cursor.execute("CREATE TABLE users (entry int AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50), site VARCHAR(50))")
-# my_cursor.execute("INSERT INTO users (username, site) VALUES (%s,%s)", ("Lucy", "Youtube"))
-# my_cursor.execute("CREATE TABLE Passwords (entry int AUTO_INCREMENT PRIMARY KEY, password VARCHAR(50))")
-pw_db.commit()
+# queries for creating tables
+# my_cursor.execute('CREATE TABLE Sites (entryID int AUTO_INCREMENT, '
+#                   'Site VARCHAR(100) NOT NULL, '
+#                   'PRIMARY KEY (entryID))')
+
+# my_cursor.execute('CREATE TABLE Passwords '
+#                   '(entryID int AUTO_INCREMENT, '
+#                   'Passwords VARCHAR(50) NOT NULL, '
+#                   'PRIMARY KEY (entryID))')
+
+# writing = working(second argument in execute is a tuple, that is why ',' is included) (should be same for other table)
+#    query = 'INSERT INTO Sites (Site) VALUES (%s)'
+#    site_name = ("reddit")
+#    my_cursor.execute(query, (site_name,))
+#    pw_db.commit()
+
+# reading
+
+# -----------------------------------------------------------------
+
+# pw_db.commit()
