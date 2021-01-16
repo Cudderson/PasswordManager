@@ -25,8 +25,8 @@ my_cursor = pw_db.cursor()
 
 # queries for creating tables
 # my_cursor.execute('CREATE TABLE Sites (entryID int AUTO_INCREMENT, '
-#                   'Site VARCHAR(100) NOT NULL, '
-#                   'PRIMARY KEY (entryID))')
+#                 'Site VARCHAR(100) NOT NULL, '
+#                 'PRIMARY KEY (entryID))')
 
 # my_cursor.execute('CREATE TABLE Passwords '
 #                   '(entryID int AUTO_INCREMENT, '
@@ -34,13 +34,22 @@ my_cursor = pw_db.cursor()
 #                   'PRIMARY KEY (entryID))')
 
 # writing = working(second argument in execute is a tuple, that is why ',' is included) (should be same for other table)
-#    query = 'INSERT INTO Sites (Site) VALUES (%s)'
-#    site_name = ("reddit")
-#    my_cursor.execute(query, (site_name,))
-#    pw_db.commit()
-
-# reading
-
-# -----------------------------------------------------------------
-
+# query = 'INSERT INTO Sites (Site) VALUES (%s)'
+# site_name = 'reddit'
+# my_cursor.execute(query, (site_name,))
 # pw_db.commit()
+
+# query2 = 'INSERT INTO Passwords (Passwords) VALUES (%s)'
+# p_name = 'tiger123'
+# my_cursor.execute(query2, (p_name,))
+# pw_db.commit()
+
+# reading all from a column:
+query3 = 'SELECT * FROM Sites'
+my_cursor.execute(query3)
+x = my_cursor.fetchall()
+for x in x:
+    print(x)
+# pw_db.commit()
+# -----------------------------------------------------------------
+pw_db.commit()
