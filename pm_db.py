@@ -8,6 +8,30 @@ pw_db = mysql.connector.connect(
     database='pw_db'
 )
 
+# cursor for interacting with database
+my_cursor = pw_db.cursor()
+
+
+def insert_entry(site_name, password):
+    # writing = working(second argument in execute is a tuple, that is why ',' is included) (pass table same)
+    insert_query_site = 'INSERT INTO Sites (Site) VALUES (%s)'
+    insert_query_pass = 'INSERT INTO Passwords (Passwords) VALUES (%s)'
+    my_cursor.execute(insert_query_site, (site_name,))
+    my_cursor.execute(insert_query_pass, (password,))
+    pw_db.commit()
+
+def read_all_entries():
+    read_all_query = 'SELECT sites.entryid, sites.site, passwords.passwords ' \
+                     'FROM sites, passwords ' \
+                     'WHERE sites.entryid = passwords.entryid'
+
+    my_cursor.execute(read_all_query)
+    all_entries = my_cursor.fetchall()
+    for entry in all_entries:
+        print(entry)
+
+read_all_entries()
+
 # NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
 # TASK: set up table structure for project***
 # TASK*: successfully read/write to database
@@ -16,11 +40,10 @@ pw_db = mysql.connector.connect(
 
 # Table structure (encryption later):
 #   1: Sites (entry_number (PK), site_name)
-#   2: Passwords (entry_number (PK), password)
+#   2: Passwords (entry_number (FK), password)
 
 
-# cursor for interacting with database
-my_cursor = pw_db.cursor()
+
 #  -------------------working syntax---------------------------
 
 # queries for creating tables
@@ -59,20 +82,14 @@ my_cursor = pw_db.cursor()
 # WHERE sites.entryid = passwords.entryid
 # AND sites.site = 'youtube';
 # -----------------------------------------------------------------
-# create a function for adding a new entry:
+# create a function for reading an entry:
 
 
-def insert_entry(site_name, password):
-    # writing = working(second argument in execute is a tuple, that is why ',' is included) (pass table same)
-    insert_query_site = 'INSERT INTO Sites (Site) VALUES (%s)'
-    insert_query_pass = 'INSERT INTO Passwords (Passwords) VALUES (%s)'
-    my_cursor.execute(insert_query_site, (site_name,))
-    my_cursor.execute(insert_query_pass, (password,))
+
 
 # script:
 
-
-site_to_add = input("Site name: ")
-pass_to_add = input("Password: ")
-insert_entry(site_to_add, pass_to_add)
-pw_db.commit()
+# site_to_add = input("Site name: ")
+# pass_to_add = input("Password: ")
+# insert_entry(site_to_add, pass_to_add)
+# pw_db.commit()
