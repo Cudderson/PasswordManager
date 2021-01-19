@@ -8,44 +8,6 @@ pw_db = mysql.connector.connect(
     database='pw_db'
 )
 
-# cursor for interacting with database
-my_cursor = pw_db.cursor()
-
-
-def insert_entry(site_name, password):
-    # writing = working(second argument in execute is a tuple, that is why ',' is included) (pass table same)
-    insert_query_site = 'INSERT INTO Sites (Site) VALUES (%s)'
-    insert_query_pass = 'INSERT INTO Passwords (Passwords) VALUES (%s)'
-    my_cursor.execute(insert_query_site, (site_name,))
-    my_cursor.execute(insert_query_pass, (password,))
-    pw_db.commit()
-
-def read_all_entries():
-    read_all_query = 'SELECT sites.entryid, sites.site, passwords.passwords ' \
-                     'FROM sites, passwords ' \
-                     'WHERE sites.entryid = passwords.entryid'
-
-    my_cursor.execute(read_all_query)
-    all_entries = my_cursor.fetchall()
-    for entry in all_entries:
-        print(entry)
-
-read_all_entries()
-
-# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
-# TASK: set up table structure for project***
-# TASK*: successfully read/write to database
-# TASK: successfully read/write to database with fernet
-# TASK: mirror functionality from original passwordmanager program (master password later)
-
-# Table structure (encryption later):
-#   1: Sites (entry_number (PK), site_name)
-#   2: Passwords (entry_number (FK), password)
-
-
-
-#  -------------------working syntax---------------------------
-
 # queries for creating tables
 # my_cursor.execute('CREATE TABLE Sites (entryID int AUTO_INCREMENT, '
 #                   'Site VARCHAR(100) NOT NULL, '
@@ -56,16 +18,74 @@ read_all_entries()
 #                    'Passwords VARCHAR(50) NOT NULL, '
 #                    'FOREIGN KEY (entryID) REFERENCES Sites(entryID))')
 
-# writing = working(second argument in execute is a tuple, that is why ',' is included) (should be same for other table)
-# query = 'INSERT INTO Sites (Site) VALUES (%s)'
-# site_name = 'youtube'
-# my_cursor.execute(query, (site_name,))
-#  pw_db.commit()
 
-# query2 = 'INSERT INTO Passwords (Passwords) VALUES (%s)'
-# p_name = 'banana'
-# my_cursor.execute(query2, (p_name,))
-# pw_db.commit()
+# cursor for interacting with database
+my_cursor = pw_db.cursor()
+
+
+def insert_entry(site_name, password):
+    """Adds a single entry to mysql database (site, password)"""
+
+    # writing = working(second argument in execute is a tuple, that is why ',' is included) (pass table same)
+    insert_query_site = 'INSERT INTO Sites (Site) VALUES (%s)'
+    insert_query_pass = 'INSERT INTO Passwords (Passwords) VALUES (%s)'
+    my_cursor.execute(insert_query_site, (site_name,))
+    my_cursor.execute(insert_query_pass, (password,))
+    pw_db.commit()
+
+
+def read_all_entries():
+    """Displays all database information, in the form: (entryid, site, password)"""
+
+    read_all_query = 'SELECT sites.entryid, sites.site, passwords.passwords ' \
+                     'FROM sites, passwords ' \
+                     'WHERE sites.entryid = passwords.entryid'
+
+    my_cursor.execute(read_all_query)
+    all_entries = my_cursor.fetchall()
+    for entry in all_entries:
+        print(entry)
+
+
+def read_one_entry(site_to_find):
+    """Displays the password for a user-specified site"""
+
+    read_one_query = 'SELECT sites.site, passwords.passwords ' \
+                     'FROM sites, passwords ' \
+                     'WHERE sites.entryid = passwords.entryid ' \
+                     'AND sites.site = (%s) '
+
+    # move the dialogue to the script
+    # site_to_find = input("Specify the name of the site for the password you need. (ex. 'Twitter'): ")
+    my_cursor.execute(read_one_query, (site_to_find,))
+    one_entry = my_cursor.fetchone()
+    print(one_entry)
+
+
+def modify_one_password(site_to_mod, pass_to_mod):
+    """Updates/Modifies the password for a user-given site"""
+
+    modify_pass_query = 'UPDATE Passwords, Sites ' \
+                        'SET passwords = (%s) ' \
+                        'WHERE sites.site = (%s) ' \
+                        'AND sites.entryid = passwords.entryid'
+
+    my_cursor.execute(modify_pass_query, (pass_to_mod, site_to_mod))
+    pw_db.commit()
+
+# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
+# TASK: set up table structure for project***
+# TASK: successfully read/write to database***
+# TASK*: successfully read/write to database with fernet
+# TASK: mirror functionality from original passwordmanager program (master password later)
+
+# Table structure (encryption later):
+#   1: Sites (entry_number (PK), site_name)
+#   2: Passwords (entry_number (FK), password)
+
+#  -------------------working syntax--------------------------
+
+# might not use this:
 
 # reading all from a column:
 # query3 = 'SELECT * FROM Sites'
@@ -75,19 +95,7 @@ read_all_entries()
 #    print(x)
 # pw_db.commit()
 
-
-# displays a single entry. this one displays a specific site and its password, linked by primary key (entryid)
-# SELECT sites.entryid, sites.site, passwords.passwords
-# FROM sites, passwords
-# WHERE sites.entryid = passwords.entryid
-# AND sites.site = 'youtube';
-# -----------------------------------------------------------------
-# create a function for reading an entry:
-
-
-
-
-# script:
+# script: ----------------------------------------------------
 
 # site_to_add = input("Site name: ")
 # pass_to_add = input("Password: ")
