@@ -1,5 +1,10 @@
 import mysql.connector
 
+from cryptography.fernet import Fernet
+
+# FERNET BRANCH - get encryption working and create a mysql table to store the crypt_key
+# NOTES: may need to change the table to accept bytes rather than UTF-8
+
 # Connect to database
 pw_db = mysql.connector.connect(
     host='localhost',
@@ -8,20 +13,37 @@ pw_db = mysql.connector.connect(
     database='pw_db'
 )
 
-# queries for creating tables
-# my_cursor.execute('CREATE TABLE Sites (entryID int AUTO_INCREMENT, '
-#                   'Site VARCHAR(100) NOT NULL, '
-#                   'PRIMARY KEY (entryID))')
+def create_tables():
+    my_cursor.execute('CREATE TABLE Sites (entryID int AUTO_INCREMENT, '
+                      'Site VARCHAR(100) NOT NULL, '
+                      'PRIMARY KEY (entryID))')
 
-#  my_cursor.execute('CREATE TABLE Passwords '
-#                    '(entryID int AUTO_INCREMENT, '
-#                    'Passwords VARCHAR(50) NOT NULL, '
-#                    'FOREIGN KEY (entryID) REFERENCES Sites(entryID))')
+    my_cursor.execute('CREATE TABLE Passwords '
+                      '(entryID int AUTO_INCREMENT, '
+                      'Passwords VARCHAR(50) NOT NULL, '
+                      'FOREIGN KEY (entryID) REFERENCES Sites(entryID))')
+
+    my_cursor.execute('CREATE TABLE CRYPT '
+                      '(crypt_key VARBINARY(100))')
+
+    pw_db.commit()
+
 
 
 # cursor for interacting with database
 my_cursor = pw_db.cursor()
 
+def create_crypt_key():
+    """
+    Checks mysql table for a Fernet key and stores a newly generated one if it is not found
+    """
+
+    #create a crypt key
+    crypt_key = Fernet.generate_key() # key is type = bytes
+
+    #query for creating crypt_key table
+    # key_table_query = 'CREATE TABLE CRYPT (key BINARY(100) NOT NULL)'
+    # pw_db.commit()
 
 def insert_entry(site_name, password):
     """Adds a single entry to mysql database (site, password)"""
