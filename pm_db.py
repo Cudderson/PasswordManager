@@ -13,6 +13,9 @@ pw_db = mysql.connector.connect(
     database='pw_db'
 )
 
+# cursor for interacting with database
+my_cursor = pw_db.cursor()
+
 def create_tables():
     my_cursor.execute('CREATE TABLE Sites (entryID int AUTO_INCREMENT, '
                       'Site VARCHAR(100) NOT NULL, '
@@ -29,21 +32,40 @@ def create_tables():
     pw_db.commit()
 
 
-
-# cursor for interacting with database
-my_cursor = pw_db.cursor()
-
 def create_crypt_key():
     """
-    Checks mysql table for a Fernet key and stores a newly generated one if it is not found
+    Checks mysql table for a Fernet key and stores a newly generated one if it does not exist
     """
 
     #create a crypt key
     crypt_key = Fernet.generate_key() # key is type = bytes
 
+
     #query for creating crypt_key table
-    # key_table_query = 'CREATE TABLE CRYPT (key BINARY(100) NOT NULL)'
-    # pw_db.commit()
+    key_table_query = 'CREATE TABLE CRYPT ' \
+                      '(key_id int AUTO_INCREMENT, ' \
+                      'crypt_key BINARY(100) NOT NULL, ' \
+                      'PRIMARY KEY (key_id))'
+    my_cursor.execute(key_table_query)
+    pw_db.commit()
+
+    #query for storing crypt_key:
+    crypt_query = 'INSERT INTO Crypt (crypt_key) VALUES (%s)'
+    my_cursor.execute(crypt_query, (crypt_key,))
+    pw_db.commit()
+
+
+def get_crypt_key():
+    get_crypt_query = 'SELECT crypt.crypt_key ' \
+                      'FROM crypt ' \
+                      'WHERE key_id = 1'
+
+    my_cursor.execute(get_crypt_query)
+    stored_key = my_cursor.fetchone()
+    # 'fetchone()' returns a union or tuple. To get the key, we take the first value:
+    stored_key = stored_key[0]
+    return stored_key
+
 
 def insert_entry(site_name, password):
     """Adds a single entry to mysql database (site, password)"""
@@ -106,20 +128,3 @@ def modify_one_password(site_to_mod, pass_to_mod):
 #   2: Passwords (entry_number (FK), password)
 
 #  -------------------working syntax--------------------------
-
-# might not use this:
-
-# reading all from a column:
-# query3 = 'SELECT * FROM Sites'
-# my_cursor.execute(query3)
-# x = my_cursor.fetchall()
-# for x in x:
-#    print(x)
-# pw_db.commit()
-
-# script: ----------------------------------------------------
-
-# site_to_add = input("Site name: ")
-# pass_to_add = input("Password: ")
-# insert_entry(site_to_add, pass_to_add)
-# pw_db.commit()
