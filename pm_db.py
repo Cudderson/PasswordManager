@@ -16,19 +16,26 @@ pw_db = mysql.connector.connect(
 # cursor for interacting with database
 my_cursor = pw_db.cursor()
 
+
 def create_tables():
-    my_cursor.execute('CREATE TABLE Sites (entryID int AUTO_INCREMENT, '
-                      'Site VARCHAR(100) NOT NULL, '
-                      'PRIMARY KEY (entryID))')
 
-    my_cursor.execute('CREATE TABLE Passwords '
-                      '(entryID int AUTO_INCREMENT, '
-                      'Passwords VARCHAR(50) NOT NULL, '
-                      'FOREIGN KEY (entryID) REFERENCES Sites(entryID))')
+    create_site_table_query = 'CREATE TABLE Sites (entryID int AUTO_INCREMENT, ' \
+                              'Site VARCHAR(100) NOT NULL, ' \
+                              'PRIMARY KEY (entryID))'
 
-    my_cursor.execute('CREATE TABLE CRYPT '
-                      '(crypt_key VARBINARY(100))')
+    create_pass_table_query = 'CREATE TABLE Passwords ' \
+                              '(entryID int AUTO_INCREMENT, ' \
+                              'Passwords BINARY(120) NOT NULL, ' \
+                              'FOREIGN KEY (entryID) REFERENCES Sites(entryID))'
 
+    key_table_query = 'CREATE TABLE CRYPT ' \
+                      '(key_id int AUTO_INCREMENT, ' \
+                      'crypt_key BINARY(120) NOT NULL, ' \
+                      'PRIMARY KEY (key_id))'
+
+    my_cursor.execute(key_table_query)
+    my_cursor.execute(create_site_table_query)
+    my_cursor.execute(create_pass_table_query)
     pw_db.commit()
 
 
@@ -40,14 +47,6 @@ def create_crypt_key():
     #create a crypt key
     crypt_key = Fernet.generate_key() # key is type = bytes
 
-
-    #query for creating crypt_key table
-    key_table_query = 'CREATE TABLE CRYPT ' \
-                      '(key_id int AUTO_INCREMENT, ' \
-                      'crypt_key BINARY(100) NOT NULL, ' \
-                      'PRIMARY KEY (key_id))'
-    my_cursor.execute(key_table_query)
-    pw_db.commit()
 
     #query for storing crypt_key:
     crypt_query = 'INSERT INTO Crypt (crypt_key) VALUES (%s)'
@@ -120,11 +119,48 @@ def modify_one_password(site_to_mod, pass_to_mod):
 # NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
 # TASK: set up table structure for project***
 # TASK: successfully read/write to database***
-# TASK*: successfully read/write to database with fernet
-# TASK: mirror functionality from original passwordmanager program (master password later)
+# TASK: successfully read/write to database with fernet***
+# TASK*: mirror functionality from original passwordmanager program (master password later)
 
 # Table structure (encryption later):
 #   1: Sites (entry_number (PK), site_name)
 #   2: Passwords (entry_number (FK), password)
 
 #  -------------------working syntax--------------------------
+# let's create a test table that holds binary values.
+
+
+new_query = 'CREATE TABLE Test ' \
+            '(entryid int AUTO_INCREMENT NOT NULL, ' \
+            'e_data BINARY(100), ' \
+            'PRIMARY KEY (entryid))'
+
+# full-cryptography flow: -------------
+
+# 1: get key and instantiate it:
+# my_key = get_crypt_key()
+# fk = Fernet(my_key)
+
+# 2: encode data with UTF-8
+# 3: 'fk.encrypt()' the data
+# 4: mysql INSERT query statement
+# 5: commit()
+# 6: RETRIEVE:
+# 7: mysql SELECT query statement
+# 8: execute, fetchone(), and take first value of tuple (what you want)
+# 9: encode data with UTF-8
+# 10: 'fk.decrypt()' the data
+
+# -------------------------------------
+# now, lets drop every table, and reinstate them to take binary values **
+# next, let's update functions to handle encryption. start with storing crypt key:
+
+# SCRIPT:
+
+my_key = get_crypt_key()
+fk = Fernet(my_key)
+
+# simulate adding an entry, then retrieving it
+a = input("new site name: ")
+b = input("new pass: ")
+
