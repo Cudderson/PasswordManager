@@ -66,6 +66,20 @@ def get_crypt_key():
     return stored_key
 
 
+def encrypt_password(pass_to_encrypt):
+    """Encrypts and returns the passed value as a Fernet token"""
+
+    pass_to_encrypt = pass_to_encrypt.encode("UTF-8")
+    return fk.encrypt(pass_to_encrypt)
+
+
+def decrypt_password(pass_to_decrypt):
+    """Decrypts and returns the passed value for the user to read"""
+
+    pass_to_decrypt = fk.decrypt(pass_to_decrypt)
+    return pass_to_decrypt.decode()
+
+
 def insert_entry(site_name, password):
     """Adds a single entry to mysql database (site, password)"""
 
@@ -90,7 +104,7 @@ def read_all_entries():
         print(entry)
 
 
-def read_one_entry(site_to_find):
+def read_one_entry(site_to_match):
     """Displays the password for a user-specified site"""
 
     read_one_query = 'SELECT sites.site, passwords.passwords ' \
@@ -100,9 +114,9 @@ def read_one_entry(site_to_find):
 
     # move the dialogue to the script
     # site_to_find = input("Specify the name of the site for the password you need. (ex. 'Twitter'): ")
-    my_cursor.execute(read_one_query, (site_to_find,))
+    my_cursor.execute(read_one_query, (site_to_match,))
     one_entry = my_cursor.fetchone()
-    print(one_entry)
+    return one_entry
 
 
 def modify_one_password(site_to_mod, pass_to_mod):
@@ -122,18 +136,8 @@ def modify_one_password(site_to_mod, pass_to_mod):
 # TASK: successfully read/write to database with fernet***
 # TASK*: mirror functionality from original passwordmanager program (master password later)
 
-# Table structure (encryption later):
-#   1: Sites (entry_number (PK), site_name)
-#   2: Passwords (entry_number (FK), password)
 
 #  -------------------working syntax--------------------------
-# let's create a test table that holds binary values.
-
-
-new_query = 'CREATE TABLE Test ' \
-            '(entryid int AUTO_INCREMENT NOT NULL, ' \
-            'e_data BINARY(100), ' \
-            'PRIMARY KEY (entryid))'
 
 # full-cryptography flow: -------------
 
@@ -151,16 +155,89 @@ new_query = 'CREATE TABLE Test ' \
 # 9: encode data with UTF-8
 # 10: 'fk.decrypt()' the data
 
-# -------------------------------------
-# now, lets drop every table, and reinstate them to take binary values **
-# next, let's update functions to handle encryption. start with storing crypt key:
+# -----------------------------------
 
 # SCRIPT:
+
 
 my_key = get_crypt_key()
 fk = Fernet(my_key)
 
+read_all_entries()
 # simulate adding an entry, then retrieving it
-a = input("new site name: ")
-b = input("new pass: ")
+# create func that does the encryption. 'insert' func should only write data to db
+# a = input("new site name: ")
+#b = input("new pass: ")
+#print(a, b)
+#encrypted_pass = encrypt_password(b) # send this to insert query
+#print(encrypted_pass)
+#insert_entry(a, encrypted_pass)
 
+# all working. now, let's get that password back and decrypt it
+# create func that decrypts the password
+#
+
+#desired = input("site name for pass looking for: ")
+#x = read_one_entry(desired)
+#y = x[1] # encrypted password
+#print(y)
+#y = y.encode("UTF-8") # encoding for decryption
+#print(y)
+#z = decrypt_password(y) # password in english
+#print(z)
+
+# let's start on the script:
+
+print("Welcome to Password Manager!\n"
+      "Your passwords will be encrypted and decrypted for viewing here.\n"
+      "What would you like to do today?\n")
+
+while True:
+
+    mode = input("Please enter a letter to access one of the following modes:\n"
+                 "\t- Press 'a' to add a new password\n"
+                 "\t- Press 'v' to view a password\n"
+                 "\t- Press 'q' to quit program"
+                 "\nEnter mode : "
+                 )
+
+    if mode == 'a':
+
+        new_site = input("Creating a new entry.\n"
+                         "Please type the name of the site for your new password (youtube): ")
+        new_pass = input(f"Please type your new password for {new_site}: ")
+
+        pass_confirm = input(f"For confirmation, type your new password for {new_site} again: ")
+        if new_pass == pass_confirm:
+
+            print(f"Ready to insert new entry for site: '{new_site}' with password: {new_pass}")
+            confirm_new_entry = input("Type 'confirm' to proceed if this is correct. ('q' to quit)")
+
+            if confirm_new_entry == 'confirm':
+                # encrypt password and send entry to insert_entry
+
+                encrypted_pass = encrypt_password(new_pass)
+                insert_entry(new_site, encrypted_pass)
+                print("\nNew entry successful!")
+
+            elif confirm_new_entry == 'q':
+                print("Quitting operation. No changes were made.\n")
+                pass
+            else:
+                print("Command not recognized.\n")
+        else:
+            print("Passwords did not match. No changes were made.")
+    elif mode == 'v':
+        site_to_find = input("Please enter the site name for the password you need. (twitter): ")
+        desired_pass = read_one_entry(site_to_find)
+        desired_pass = desired_pass[1]
+        print(f"Here is your encrypted password for {site_to_find}:\n{desired_pass}")
+        input("type 'decrypt' to view your password:")
+        desired_pass = desired_pass.encode("UTF-8")
+        password = decrypt_password(desired_pass)
+        print(f"Your password for {site_to_find} is: {password}")
+        input("Press enter to continue: ")
+    elif mode == 'q':
+        quit()
+
+# fix foreign key bug
