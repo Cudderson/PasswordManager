@@ -3,7 +3,6 @@ import mysql.connector
 from cryptography.fernet import Fernet
 
 # FERNET BRANCH - get encryption working and create a mysql table to store the crypt_key
-# NOTES: may need to change the table to accept bytes rather than UTF-8
 
 # Connect to database
 pw_db = mysql.connector.connect(
@@ -21,19 +20,23 @@ def requirements():
     """Prepares db schema and handles creation of encryption key and master key"""
 
     tables_exist()
+
     if not tables_exist():
+
         create_tables()
         create_crypt_key()
         master_to_store = create_master_key()
         encrypted_master = encrypt_password(master_to_store)
         insert_master(encrypted_master)
         print(f"\nNew master password '{master_to_store}' was encrypted and stored. Don't forget it!!!")
+
     else:
         pass
         # requirements satisfied
 
 
 def create_tables():
+    """Creates necessary tables in db for program to run correctly"""
 
     create_site_table_query = 'CREATE TABLE Sites (entryID int AUTO_INCREMENT, ' \
                               'Site VARCHAR(100) NOT NULL, ' \
@@ -66,23 +69,23 @@ def create_crypt_key():
     Checks mysql table for a Fernet key and stores a newly generated one if it does not exist
     """
 
-    #create a crypt key
     crypt_key = Fernet.generate_key() # key is type = bytes
 
-
-    #query for storing crypt_key:
     crypt_query = 'INSERT INTO Crypt (crypt_key) VALUES (%s)'
     my_cursor.execute(crypt_query, (crypt_key,))
     pw_db.commit()
 
 
 def get_crypt_key():
+    """Finds and returns encryption key in db"""
+
     get_crypt_query = 'SELECT crypt.crypt_key ' \
                       'FROM crypt ' \
                       'WHERE key_id = 1'
 
     my_cursor.execute(get_crypt_query)
     stored_key = my_cursor.fetchone()
+
     # 'fetchone()' returns a union or tuple. To get the key, we take the first value:
     stored_key = stored_key[0]
     return stored_key
@@ -115,15 +118,14 @@ def insert_master(master_password):
     pw_db.commit()
 
 
-def insert_entry(site_name, password):
+def insert_entry(new_site_name, new_password):
     """Adds a single entry to mysql database (site, password)"""
 
-    # writing = working(second argument in execute is a tuple, that is why ',' is included) (pass table same)
     insert_query_site = 'INSERT INTO Sites (Site) VALUES (%s)'
     insert_query_pass = 'INSERT INTO Passwords (Passwords) VALUES (%s)'
-    my_cursor.execute(insert_query_site, (site_name,))
+    my_cursor.execute(insert_query_site, (new_site_name,))
     pw_db.commit()
-    my_cursor.execute(insert_query_pass, (password,))
+    my_cursor.execute(insert_query_pass, (new_password,))
     pw_db.commit()
 
 
@@ -136,6 +138,7 @@ def read_all_entries():
 
     my_cursor.execute(read_all_query)
     all_entries = my_cursor.fetchall()
+
     for entry in all_entries:
         print(entry)
 
@@ -148,8 +151,6 @@ def read_one_entry(site_to_match):
                      'WHERE sites.entryid = passwords.entryid ' \
                      'AND sites.site = (%s) '
 
-    # move the dialogue to the script
-    # site_to_find = input("Specify the name of the site for the password you need. (ex. 'Twitter'): ")
     my_cursor.execute(read_one_query, (site_to_match,))
     one_entry = my_cursor.fetchone()
     return one_entry
@@ -179,48 +180,18 @@ def entry_exists(site):
     existing_entry = my_cursor.fetchone()
     return existing_entry
 
-# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
-# TASK: set up table structure for project***
-# TASK: successfully read/write to database***
-# TASK: successfully read/write to database with fernet***
-# TASK: mirror functionality from original passwordmanager program***
-# TASK*: master password stored in db and checked at entry point
-# TASK*: conceptualize flow of initial run:
-#   - check for master key, either enter it or create it (maybe create tables should only appear in master creation?)
-#   - check if tables are created, create them if not
-#   - save new master key to db if new
-#   - #
-
-# full-cryptography flow: -------------
-
-# 1: get key and instantiate it:
-# my_key = get_crypt_key()
-# fk = Fernet(my_key)
-
-# 2: encode data with UTF-8
-# 3: 'fk.encrypt()' the data
-# 4: mysql INSERT query statement
-# 5: commit()
-# 6: RETRIEVE:
-# 7: mysql SELECT query statement
-# 8: execute, fetchone(), and take first value of tuple (what you want)
-# 9: encode data with UTF-8
-# 10: 'fk.decrypt()' the data
-
-
-
-# let's start on the script:
-# still need requirements check
-# create master key script
-
 
 def tables_exist():
+    """Checks if db schema is set up properly and returns a boolean"""
+
     tables_in_db = False
     tables_exist_query = 'SHOW TABLES'
     my_cursor.execute(tables_exist_query)
     my_tables = my_cursor.fetchall()
+
     if len(my_tables) == 4:
         tables_in_db = True
+
     return tables_in_db
 
 
@@ -244,14 +215,15 @@ def create_master_key():
         elif store_new_master_confirm == 'no':
 
             print("\nNew master password was not created. To use Password Manager, you must create one.")
-            create_master_key()
+            return create_master_key()
 
         else:
             print("\nCommand not recognized. No changes were made.")
-            create_master_key()
+            return create_master_key()
     else:
         print("\nPasswords did not match. Nothing was altered.")
-        create_master_key()
+        return create_master_key()
+
 
 def get_master_key():
     """Retrieves, decrypts, and returns master key from db"""
@@ -263,19 +235,34 @@ def get_master_key():
     my_cursor.execute(get_master_query)
     master_key_found = my_cursor.fetchone()
     decrypted_master = fk.decrypt(master_key_found[0].encode())
+
     return decrypted_master
+
+
+def master_login():
+    """Retrieves master key and allows access to db if matched correctly"""
+
+    master_key = get_master_key().decode()
+    login_master = input("\nEnter your master password to begin using Password Manager: ")
+
+    if login_master == master_key:
+
+        print("Access granted!\n")
+        access_granted = True
+
+        return access_granted
+
+    else:
+
+        print("Uh oh, that is not your master password. Try again.")
+        return master_login()
 
 
 requirements()
 my_key = get_crypt_key()
 fk = Fernet(my_key)
-# get master key
-master_key = get_master_key().decode()
-# login
-print(master_key)
-input()
-#####LEFT OFF HERE############################################################################
-# start by dropping all tables
+master_login()
+read_all_entries()
 
 print("Welcome to Password Manager!\n"
       "Your passwords will be encrypted and decrypted for viewing here.\n"
@@ -286,6 +273,7 @@ while True:
     mode = input("\nPlease enter a letter to access one of the following modes:\n"
                  "\t- Press 'a' to add a new password\n"
                  "\t- Press 'v' to view a password\n"
+                 "\t- Press 's' to view all sites you have stored\n"
                  "\t- Press 'm' to modify an existing password\n"
                  "\t- Press 'q' to quit program\n"
                  "\nEnter mode : "
@@ -313,32 +301,44 @@ while True:
             elif confirm_new_entry == 'q':
                 print("Quitting operation. No changes were made.\n")
                 pass
+
             else:
                 print("Command not recognized.\n")
+
         else:
             print("Passwords did not match. No changes were made.")
+
     elif mode == 'v':
+
         site_to_find = input("\nPlease enter the site name for the password you need. (twitter): ")
         entry_to_view = entry_exists(site_to_find)
+
         if entry_to_view is not None:
+
             desired_pass = read_one_entry(site_to_find)
             desired_pass = desired_pass[1]
             print(f"\nHere is your encrypted password for {site_to_find}:\n{desired_pass}")
             confirm_decrypt = input("\nType 'decrypt' to view your password: ")
+
             if confirm_decrypt == 'decrypt':
+
                 desired_pass = desired_pass.encode("UTF-8")
                 password = decrypt_password(desired_pass)
                 print(f"\nYour password for {site_to_find} is: {password}")
                 input("\nPress enter to continue: ")
+
             else:
                 print("\nCommand not recognized. No changes were made.\n")
+
         else:
             print(f"\nCould not find entry with site name '{site_to_find}'")
             print(f"Cancelling operation. Nothing was altered.")
+
     elif mode == 'm':
-        site_to_mod = input("\nPlease enter the site name for the password you are modifying: ")
+
+        site_to_modify = input("\nPlease enter the site name for the password you are modifying: ")
         # make sure site name exists in db:
-        found_entry = entry_exists(site_to_mod)
+        found_entry = entry_exists(site_to_modify)
 
         if found_entry is not None:
 
@@ -355,10 +355,8 @@ while True:
             confirm_modded_pass = input(f"Confirm new password for {found_site}: ")
 
             if modded_pass == confirm_modded_pass:
-                # encrypt new password for db storage
-                y = encrypt_password(modded_pass)
 
-                # call modify function
+                y = encrypt_password(modded_pass)
                 modify_one_password(found_site, y)
 
                 print("\nNew entry added successfully!\n")
@@ -369,9 +367,16 @@ while True:
         else:
             print(f"Could not find site '{site_to_mod}' in database.")
 
+    elif mode == 's':
+
+        print("\nHere are the sites you have stored. To get a password, press 'v'\n")
+        read_all_entries()
+
     elif mode == 'q':
         print("\nSee you next time! Quitting program.")
         quit()
 
     else:
         print("\nCommand not recognized.\n")
+
+# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
