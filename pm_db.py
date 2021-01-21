@@ -17,6 +17,22 @@ pw_db = mysql.connector.connect(
 my_cursor = pw_db.cursor()
 
 
+def requirements():
+    """Prepares db schema and handles creation of encryption key and master key"""
+
+    tables_exist()
+    if not tables_exist():
+        create_tables()
+        create_crypt_key()
+        master_to_store = create_master_key()
+        encrypted_master = encrypt_password(master_to_store)
+        insert_master(encrypted_master)
+        print(f"\nNew master password '{master_to_store}' was encrypted and stored. Don't forget it!!!")
+    else:
+        pass
+        # requirements satisfied
+
+
 def create_tables():
 
     create_site_table_query = 'CREATE TABLE Sites (entryID int AUTO_INCREMENT, ' \
@@ -25,17 +41,23 @@ def create_tables():
 
     create_pass_table_query = 'CREATE TABLE Passwords ' \
                               '(entryID int AUTO_INCREMENT, ' \
-                              'Passwords BINARY(120) NOT NULL, ' \
+                              'Passwords BINARY(100) NOT NULL, ' \
                               'FOREIGN KEY (entryID) REFERENCES Sites(entryID))'
 
-    key_table_query = 'CREATE TABLE CRYPT ' \
+    key_table_query = 'CREATE TABLE Crypt ' \
                       '(key_id int AUTO_INCREMENT, ' \
                       'crypt_key BINARY(120) NOT NULL, ' \
                       'PRIMARY KEY (key_id))'
 
+    create_master_table_query = 'CREATE TABLE Master ' \
+                                '(master_key_id int AUTO_INCREMENT, ' \
+                                'master_key BINARY(100) NOT NULL, ' \
+                                'PRIMARY KEY (master_key_id))'
+
     my_cursor.execute(key_table_query)
     my_cursor.execute(create_site_table_query)
     my_cursor.execute(create_pass_table_query)
+    my_cursor.execute(create_master_table_query)
     pw_db.commit()
 
 
@@ -69,8 +91,11 @@ def get_crypt_key():
 def encrypt_password(pass_to_encrypt):
     """Encrypts and returns the passed value as a Fernet token"""
 
+    temp_key = get_crypt_key()
+    tk = Fernet(temp_key)
+
     pass_to_encrypt = pass_to_encrypt.encode("UTF-8")
-    return fk.encrypt(pass_to_encrypt)
+    return tk.encrypt(pass_to_encrypt)
 
 
 def decrypt_password(pass_to_decrypt):
@@ -78,6 +103,16 @@ def decrypt_password(pass_to_decrypt):
 
     pass_to_decrypt = fk.decrypt(pass_to_decrypt)
     return pass_to_decrypt.decode()
+
+
+def insert_master(master_password):
+    """Inserts user master password to db"""
+
+    insert_master_query = 'INSERT INTO Master (master_key) ' \
+                          'VALUES (%s)'
+
+    my_cursor.execute(insert_master_query, (master_password,))
+    pw_db.commit()
 
 
 def insert_entry(site_name, password):
@@ -148,7 +183,13 @@ def entry_exists(site):
 # TASK: set up table structure for project***
 # TASK: successfully read/write to database***
 # TASK: successfully read/write to database with fernet***
-# TASK*: mirror functionality from original passwordmanager program (master password later)
+# TASK: mirror functionality from original passwordmanager program***
+# TASK*: master password stored in db and checked at entry point
+# TASK*: conceptualize flow of initial run:
+#   - check for master key, either enter it or create it (maybe create tables should only appear in master creation?)
+#   - check if tables are created, create them if not
+#   - save new master key to db if new
+#   - #
 
 # full-cryptography flow: -------------
 
@@ -166,10 +207,75 @@ def entry_exists(site):
 # 9: encode data with UTF-8
 # 10: 'fk.decrypt()' the data
 
-my_key = get_crypt_key()
-fk = Fernet(my_key)
+
 
 # let's start on the script:
+# still need requirements check
+# create master key script
+
+
+def tables_exist():
+    tables_in_db = False
+    tables_exist_query = 'SHOW TABLES'
+    my_cursor.execute(tables_exist_query)
+    my_tables = my_cursor.fetchall()
+    if len(my_tables) == 4:
+        tables_in_db = True
+    return tables_in_db
+
+
+def create_master_key():
+    """Creates and returns master password if it does not exist"""
+
+    print("\nBefore we begin, let's set a master password for this program.\n"
+          "Your master password will be required to access your stored passwords.")
+
+    new_master = input("\nEnter your new master password: ")
+    new_master_confirm = input("To confirm, enter your new master password again: ")
+
+    if new_master == new_master_confirm:
+
+        store_new_master_confirm = input(f"\nStore new master password '{new_master}' ? (yes/no): ")
+
+        if store_new_master_confirm == 'yes':
+
+            return new_master
+
+        elif store_new_master_confirm == 'no':
+
+            print("\nNew master password was not created. To use Password Manager, you must create one.")
+            create_master_key()
+
+        else:
+            print("\nCommand not recognized. No changes were made.")
+            create_master_key()
+    else:
+        print("\nPasswords did not match. Nothing was altered.")
+        create_master_key()
+
+def get_master_key():
+    """Retrieves, decrypts, and returns master key from db"""
+
+    get_master_query = 'SELECT master.master_key ' \
+                       'FROM master ' \
+                       'WHERE master.master_key_id = 1'
+
+    my_cursor.execute(get_master_query)
+    master_key_found = my_cursor.fetchone()
+    decrypted_master = fk.decrypt(master_key_found[0].encode())
+    return decrypted_master
+
+
+requirements()
+my_key = get_crypt_key()
+fk = Fernet(my_key)
+# get master key
+master_key = get_master_key().decode()
+# login
+print(master_key)
+input()
+#####LEFT OFF HERE############################################################################
+# start by dropping all tables
 
 print("Welcome to Password Manager!\n"
       "Your passwords will be encrypted and decrypted for viewing here.\n"
@@ -264,6 +370,7 @@ while True:
             print(f"Could not find site '{site_to_mod}' in database.")
 
     elif mode == 'q':
+        print("\nSee you next time! Quitting program.")
         quit()
 
     else:
