@@ -262,7 +262,7 @@ requirements()
 my_key = get_crypt_key()
 fk = Fernet(my_key)
 master_login()
-read_all_entries()
+
 
 print("Welcome to Password Manager!\n"
       "Your passwords will be encrypted and decrypted for viewing here.\n"
@@ -288,7 +288,7 @@ while True:
         pass_confirm = input(f"\nFor confirmation, type your new password for {new_site} again: ")
         if new_pass == pass_confirm:
 
-            print(f"\nReady to insert new entry for site: '{new_site}' with password: {new_pass}")
+            print(f"\nReady to insert new entry for site '{new_site}' with password: {new_pass}")
             confirm_new_entry = input("\nType 'confirm' to proceed if this is correct. ('q' to quit): ")
 
             if confirm_new_entry == 'confirm':
@@ -359,13 +359,14 @@ while True:
                 y = encrypt_password(modded_pass)
                 modify_one_password(found_site, y)
 
-                print("\nNew entry added successfully!\n")
+                print(f"\nNew entry added successfully!"
+                      f"\nYour new password for {found_site} is '{modded_pass}'\n")
 
             else:
                 print("\nNew passwords did not match. No changes were made.\n")
 
         else:
-            print(f"Could not find site '{site_to_mod}' in database.")
+            print(f"Could not find site '{site_to_modify}' in database.")
 
     elif mode == 's':
 
