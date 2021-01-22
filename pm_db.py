@@ -2,7 +2,8 @@ import mysql.connector
 
 from cryptography.fernet import Fernet
 
-# FERNET BRANCH - get encryption working and create a mysql table to store the crypt_key
+# REFACTOR BRANCH
+# Structure project and deploy
 
 # Connect to database
 pw_db = mysql.connector.connect(
