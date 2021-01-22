@@ -2,7 +2,6 @@ import mysql.connector
 
 from cryptography.fernet import Fernet
 
-# REFACTOR BRANCH
 # Structure project and deploy
 
 # Connect to database
