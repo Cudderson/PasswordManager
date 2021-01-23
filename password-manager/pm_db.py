@@ -5,8 +5,8 @@ from cryptography.fernet import Fernet
 # Connect to database
 pw_db = mysql.connector.connect(
     host='localhost',
-    user='cudderson',
-    passwd='baseball2',
+    user='', # <-- your info
+    passwd='', # <-- your info
     database='pw_db'
 )
 
