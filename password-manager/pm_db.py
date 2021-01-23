@@ -5,8 +5,8 @@ from cryptography.fernet import Fernet
 # Connect to database
 pw_db = mysql.connector.connect(
     host='localhost',
-    user='', # <-- your info
-    passwd='', # <-- your info
+    user='',  # <-- your info
+    passwd='',  # <-- your info
     database='pw_db'
 )
 
@@ -256,124 +256,130 @@ def master_login():
         return master_login()
 
 
-# program start
+# db setup and variable declaration, initial log in
 requirements()
 my_key = get_crypt_key()
 fk = Fernet(my_key)
 master_login()
 
 
-print("Welcome to Password Manager!\n"
-      "Your passwords will be encrypted and decrypted for viewing here.\n"
-      "What would you like to do today?\n")
+def main():
+    """Main flow of program"""
 
-while True:
+    print("Welcome to Password Manager!\n"
+          "Your passwords will be encrypted and decrypted for viewing here.\n"
+          "What would you like to do today?\n")
 
-    mode = input("\nPlease enter a letter to access one of the following modes:\n"
-                 "\t- Press 'a' to add a new password\n"
-                 "\t- Press 'v' to view a password\n"
-                 "\t- Press 's' to view all sites you have stored\n"
-                 "\t- Press 'm' to modify an existing password\n"
-                 "\t- Press 'q' to quit program\n"
-                 "\nEnter mode : "
-                 )
+    while True:
 
-    if mode == 'a':
+        mode = input("\nPlease enter a letter to access one of the following modes:\n"
+                     "\t- Press 'a' to add a new password\n"
+                     "\t- Press 'v' to view a password\n"
+                     "\t- Press 's' to view all sites you have stored\n"
+                     "\t- Press 'm' to modify an existing password\n"
+                     "\t- Press 'q' to quit program\n"
+                     "\nEnter mode : "
+                     )
 
-        new_site = input("\nCreating a new entry.\n"
-                         "Please type the name of the site for your new password (ex. 'youtube'): ")
-        new_pass = input(f"\nPlease type your new password for {new_site}: ")
+        if mode == 'a':
 
-        pass_confirm = input(f"\nFor confirmation, type your new password for {new_site} again: ")
-        if new_pass == pass_confirm:
+            new_site = input("\nCreating a new entry.\n"
+                             "Please type the name of the site for your new password (ex. 'youtube'): ")
+            new_pass = input(f"\nPlease type your new password for {new_site}: ")
 
-            print(f"\nReady to insert new entry for site '{new_site}' with password: {new_pass}")
-            confirm_new_entry = input("\nType 'confirm' to proceed if this is correct. ('q' to quit): ")
+            pass_confirm = input(f"\nFor confirmation, type your new password for {new_site} again: ")
+            if new_pass == pass_confirm:
 
-            if confirm_new_entry == 'confirm':
+                print(f"\nReady to insert new entry for site '{new_site}' with password: {new_pass}")
+                confirm_new_entry = input("\nType 'confirm' to proceed if this is correct. ('q' to quit): ")
 
-                encrypted_pass = encrypt_password(new_pass)
-                insert_entry(new_site, encrypted_pass)
-                print("\nNew entry successful!\n")
+                if confirm_new_entry == 'confirm':
 
-            elif confirm_new_entry == 'q':
-                print("Quitting operation. No changes were made.\n")
-                pass
+                    encrypted_pass = encrypt_password(new_pass)
+                    insert_entry(new_site, encrypted_pass)
+                    print("\nNew entry successful!\n")
 
-            else:
-                print("Command not recognized.\n")
+                elif confirm_new_entry == 'q':
+                    print("Quitting operation. No changes were made.\n")
+                    pass
 
-        else:
-            print("Passwords did not match. No changes were made.")
-
-    elif mode == 'v':
-
-        site_to_find = input("\nPlease enter the site name for the password you need. (twitter): ")
-        entry_to_view = entry_exists(site_to_find)
-
-        if entry_to_view is not None:
-
-            desired_pass = read_one_entry(site_to_find)
-            desired_pass = desired_pass[1]
-            print(f"\nHere is your encrypted password for {site_to_find}:\n{desired_pass}")
-            confirm_decrypt = input("\nType 'decrypt' to view your password: ")
-
-            if confirm_decrypt == 'decrypt':
-
-                desired_pass = desired_pass.encode("UTF-8")
-                password = decrypt_password(desired_pass)
-                print(f"\nYour password for {site_to_find} is: {password}")
-                input("\nPress enter to continue: ")
+                else:
+                    print("Command not recognized.\n")
 
             else:
-                print("\nCommand not recognized. No changes were made.\n")
+                print("Passwords did not match. No changes were made.")
 
-        else:
-            print(f"\nCould not find entry with site name '{site_to_find}'")
-            print(f"Cancelling operation. Nothing was altered.")
+        elif mode == 'v':
 
-    elif mode == 'm':
+            site_to_find = input("\nPlease enter the site name for the password you need. (twitter): ")
+            entry_to_view = entry_exists(site_to_find)
 
-        site_to_modify = input("\nPlease enter the site name for the password you are modifying: ")
-        # make sure site name exists in db:
-        found_entry = entry_exists(site_to_modify)
+            if entry_to_view is not None:
 
-        if found_entry is not None:
+                desired_pass = read_one_entry(site_to_find)
+                desired_pass = desired_pass[1]
+                print(f"\nHere is your encrypted password for {site_to_find}:\n{desired_pass}")
+                confirm_decrypt = input("\nType 'decrypt' to view your password: ")
 
-            found_site = found_entry[0]
-            found_pass = found_entry[1]
+                if confirm_decrypt == 'decrypt':
 
-            print(f"\nReady to change password for {found_site}")
+                    desired_pass = desired_pass.encode("UTF-8")
+                    password = decrypt_password(desired_pass)
+                    print(f"\nYour password for {site_to_find} is: {password}")
+                    input("\nPress enter to continue: ")
 
-            # decrypt current password
-            x = decrypt_password(found_pass.encode("UTF-8"))
-
-            print(f"\nCurrent password for {found_site} is {x}")
-            modded_pass = input(f"\nEnter your new password for {found_site}: ")
-            confirm_modded_pass = input(f"Confirm new password for {found_site}: ")
-
-            if modded_pass == confirm_modded_pass:
-
-                y = encrypt_password(modded_pass)
-                modify_one_password(found_site, y)
-
-                print(f"\nNew entry added successfully!"
-                      f"\nYour new password for {found_site} is '{modded_pass}'\n")
+                else:
+                    print("\nCommand not recognized. No changes were made.\n")
 
             else:
-                print("\nNew passwords did not match. No changes were made.\n")
+                print(f"\nCould not find entry with site name '{site_to_find}'")
+                print(f"Cancelling operation. Nothing was altered.")
+
+        elif mode == 'm':
+
+            site_to_modify = input("\nPlease enter the site name for the password you are modifying: ")
+            # make sure site name exists in db:
+            found_entry = entry_exists(site_to_modify)
+
+            if found_entry is not None:
+
+                found_site = found_entry[0]
+                found_pass = found_entry[1]
+
+                print(f"\nReady to change password for {found_site}")
+
+                # decrypt current password
+                x = decrypt_password(found_pass.encode("UTF-8"))
+
+                print(f"\nCurrent password for {found_site} is {x}")
+                modded_pass = input(f"\nEnter your new password for {found_site}: ")
+                confirm_modded_pass = input(f"Confirm new password for {found_site}: ")
+
+                if modded_pass == confirm_modded_pass:
+
+                    y = encrypt_password(modded_pass)
+                    modify_one_password(found_site, y)
+
+                    print(f"\nNew entry added successfully!"
+                          f"\nYour new password for {found_site} is '{modded_pass}'\n")
+
+                else:
+                    print("\nNew passwords did not match. No changes were made.\n")
+
+            else:
+                print(f"Could not find site '{site_to_modify}' in database.")
+
+        elif mode == 's':
+
+            print("\nHere are the sites you have stored. To get a password, press 'v'\n")
+            read_all_entries()
+
+        elif mode == 'q':
+            print("\nSee you next time! Quitting program.")
+            quit()
 
         else:
-            print(f"Could not find site '{site_to_modify}' in database.")
+            print("\nCommand not recognized.\n")
 
-    elif mode == 's':
 
-        print("\nHere are the sites you have stored. To get a password, press 'v'\n")
-        read_all_entries()
-
-    elif mode == 'q':
-        print("\nSee you next time! Quitting program.")
-        quit()
-
-    else:
-        print("\nCommand not recognized.\n")
+main()
