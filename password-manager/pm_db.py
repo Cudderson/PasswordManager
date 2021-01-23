@@ -2,6 +2,7 @@ import mysql.connector
 
 from cryptography.fernet import Fernet
 
+<<<<<<< HEAD
 import crypt_mod, sql_mod
 
 # Structure project and deploy
@@ -9,6 +10,23 @@ import crypt_mod, sql_mod
 
 def requirements():
     #split into 2 requirments funcs, one for sql, one for fernet
+=======
+# Structure project and deploy
+
+# Connect to database
+pw_db = mysql.connector.connect(
+    host='localhost',
+    user='cudderson',
+    passwd='baseball2',
+    database='pw_db'
+)
+
+# cursor for interacting with database
+my_cursor = pw_db.cursor()
+
+
+def requirements():
+>>>>>>> redo
     """Prepares db schema and handles creation of encryption key and master key"""
 
     tables_exist()
@@ -27,20 +45,180 @@ def requirements():
         # requirements satisfied
 
 
+<<<<<<< HEAD
+=======
+def create_tables():
+    """Creates necessary tables in db for program to run correctly"""
+
+    create_site_table_query = 'CREATE TABLE Sites (entryID int AUTO_INCREMENT, ' \
+                              'Site VARCHAR(100) NOT NULL, ' \
+                              'PRIMARY KEY (entryID))'
+
+    create_pass_table_query = 'CREATE TABLE Passwords ' \
+                              '(entryID int AUTO_INCREMENT, ' \
+                              'Passwords BINARY(100) NOT NULL, ' \
+                              'FOREIGN KEY (entryID) REFERENCES Sites(entryID))'
+
+    key_table_query = 'CREATE TABLE Crypt ' \
+                      '(key_id int AUTO_INCREMENT, ' \
+                      'crypt_key BINARY(120) NOT NULL, ' \
+                      'PRIMARY KEY (key_id))'
+
+    create_master_table_query = 'CREATE TABLE Master ' \
+                                '(master_key_id int AUTO_INCREMENT, ' \
+                                'master_key BINARY(100) NOT NULL, ' \
+                                'PRIMARY KEY (master_key_id))'
+
+    my_cursor.execute(key_table_query)
+    my_cursor.execute(create_site_table_query)
+    my_cursor.execute(create_pass_table_query)
+    my_cursor.execute(create_master_table_query)
+    pw_db.commit()
+
+
+>>>>>>> redo
 def create_crypt_key():
     """
     Checks mysql table for a Fernet key and stores a newly generated one if it does not exist
     """
 
     crypt_key = Fernet.generate_key() # key is type = bytes
+<<<<<<< HEAD
     #insert crypt key func:
+=======
+
+>>>>>>> redo
     crypt_query = 'INSERT INTO Crypt (crypt_key) VALUES (%s)'
     my_cursor.execute(crypt_query, (crypt_key,))
     pw_db.commit()
 
 
+<<<<<<< HEAD
 def create_master_key():
     """Creates and returns new master password"""
+=======
+def get_crypt_key():
+    """Finds and returns encryption key in db"""
+
+    get_crypt_query = 'SELECT crypt.crypt_key ' \
+                      'FROM crypt ' \
+                      'WHERE key_id = 1'
+
+    my_cursor.execute(get_crypt_query)
+    stored_key = my_cursor.fetchone()
+
+    # 'fetchone()' returns a union or tuple. To get the key, we take the first value:
+    stored_key = stored_key[0]
+    return stored_key
+
+
+def encrypt_password(pass_to_encrypt):
+    """Encrypts and returns the passed value as a Fernet token"""
+
+    temp_key = get_crypt_key()
+    tk = Fernet(temp_key)
+
+    pass_to_encrypt = pass_to_encrypt.encode("UTF-8")
+    return tk.encrypt(pass_to_encrypt)
+
+
+def decrypt_password(pass_to_decrypt):
+    """Decrypts and returns the passed value for the user to read"""
+
+    pass_to_decrypt = fk.decrypt(pass_to_decrypt)
+    return pass_to_decrypt.decode()
+
+
+def insert_master(master_password):
+    """Inserts user master password to db"""
+
+    insert_master_query = 'INSERT INTO Master (master_key) ' \
+                          'VALUES (%s)'
+
+    my_cursor.execute(insert_master_query, (master_password,))
+    pw_db.commit()
+
+
+def insert_entry(new_site_name, new_password):
+    """Adds a single entry to mysql database (site, password)"""
+
+    insert_query_site = 'INSERT INTO Sites (Site) VALUES (%s)'
+    insert_query_pass = 'INSERT INTO Passwords (Passwords) VALUES (%s)'
+    my_cursor.execute(insert_query_site, (new_site_name,))
+    pw_db.commit()
+    my_cursor.execute(insert_query_pass, (new_password,))
+    pw_db.commit()
+
+
+def read_all_entries():
+    """Displays all database information, in the form: (entryid, site, password)"""
+
+    read_all_query = 'SELECT sites.entryid, sites.site, passwords.passwords ' \
+                     'FROM sites, passwords ' \
+                     'WHERE sites.entryid = passwords.entryid'
+
+    my_cursor.execute(read_all_query)
+    all_entries = my_cursor.fetchall()
+
+    for entry in all_entries:
+        print(entry)
+
+
+def read_one_entry(site_to_match):
+    """Displays the password for a user-specified site"""
+
+    read_one_query = 'SELECT sites.site, passwords.passwords ' \
+                     'FROM sites, passwords ' \
+                     'WHERE sites.entryid = passwords.entryid ' \
+                     'AND sites.site = (%s) '
+
+    my_cursor.execute(read_one_query, (site_to_match,))
+    one_entry = my_cursor.fetchone()
+    return one_entry
+
+
+def modify_one_password(site_to_mod, pass_to_mod):
+    """Updates/Modifies the password for a user-given site"""
+
+    modify_pass_query = 'UPDATE Passwords, Sites ' \
+                        'SET passwords = (%s) ' \
+                        'WHERE sites.site = (%s) ' \
+                        'AND sites.entryid = passwords.entryid'
+
+    my_cursor.execute(modify_pass_query, (pass_to_mod, site_to_mod))
+    pw_db.commit()
+
+
+def entry_exists(site):
+    """Makes sure that a given entry exists in database before handling"""
+
+    entry_exists_query = "SELECT sites.site, passwords.passwords " \
+                         "FROM Sites, Passwords " \
+                         "WHERE sites.site = (%s) " \
+                         "AND sites.entryid = passwords.entryid"
+
+    my_cursor.execute(entry_exists_query, (site,))
+    existing_entry = my_cursor.fetchone()
+    return existing_entry
+
+
+def tables_exist():
+    """Checks if db schema is set up properly and returns a boolean"""
+
+    tables_in_db = False
+    tables_exist_query = 'SHOW TABLES'
+    my_cursor.execute(tables_exist_query)
+    my_tables = my_cursor.fetchall()
+
+    if len(my_tables) == 4:
+        tables_in_db = True
+
+    return tables_in_db
+
+
+def create_master_key():
+    """Creates and returns master password if it does not exist"""
+>>>>>>> redo
 
     print("\nBefore we begin, let's set a master password for this program.\n"
           "Your master password will be required to access your stored passwords.")
@@ -78,14 +256,20 @@ def get_master_key():
 
     my_cursor.execute(get_master_query)
     master_key_found = my_cursor.fetchone()
+<<<<<<< HEAD
     # split this up into 2 funcs, sql and fernet
+=======
+>>>>>>> redo
     decrypted_master = fk.decrypt(master_key_found[0].encode())
 
     return decrypted_master
 
 
 def master_login():
+<<<<<<< HEAD
     # goes in sql mods
+=======
+>>>>>>> redo
     """Retrieves master key and allows access to db if matched correctly"""
 
     master_key = get_master_key().decode()
@@ -105,12 +289,18 @@ def master_login():
 
 
 requirements()
+<<<<<<< HEAD
 # requirments2()
+=======
+>>>>>>> redo
 my_key = get_crypt_key()
 fk = Fernet(my_key)
 master_login()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> redo
 print("Welcome to Password Manager!\n"
       "Your passwords will be encrypted and decrypted for viewing here.\n"
       "What would you like to do today?\n")
@@ -227,4 +417,8 @@ while True:
     else:
         print("\nCommand not recognized.\n")
 
+<<<<<<< HEAD
 # NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
+=======
+# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
+>>>>>>> redo
