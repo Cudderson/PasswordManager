@@ -2,15 +2,6 @@ import mysql.connector
 
 from cryptography.fernet import Fernet
 
-<<<<<<< HEAD
-import crypt_mod, sql_mod
-
-# Structure project and deploy
-
-
-def requirements():
-    #split into 2 requirments funcs, one for sql, one for fernet
-=======
 # Structure project and deploy
 
 # Connect to database
@@ -26,7 +17,6 @@ my_cursor = pw_db.cursor()
 
 
 def requirements():
->>>>>>> redo
     """Prepares db schema and handles creation of encryption key and master key"""
 
     tables_exist()
@@ -45,8 +35,6 @@ def requirements():
         # requirements satisfied
 
 
-<<<<<<< HEAD
-=======
 def create_tables():
     """Creates necessary tables in db for program to run correctly"""
 
@@ -76,27 +64,18 @@ def create_tables():
     pw_db.commit()
 
 
->>>>>>> redo
 def create_crypt_key():
     """
     Checks mysql table for a Fernet key and stores a newly generated one if it does not exist
     """
 
     crypt_key = Fernet.generate_key() # key is type = bytes
-<<<<<<< HEAD
-    #insert crypt key func:
-=======
 
->>>>>>> redo
     crypt_query = 'INSERT INTO Crypt (crypt_key) VALUES (%s)'
     my_cursor.execute(crypt_query, (crypt_key,))
     pw_db.commit()
 
 
-<<<<<<< HEAD
-def create_master_key():
-    """Creates and returns new master password"""
-=======
 def get_crypt_key():
     """Finds and returns encryption key in db"""
 
@@ -218,7 +197,6 @@ def tables_exist():
 
 def create_master_key():
     """Creates and returns master password if it does not exist"""
->>>>>>> redo
 
     print("\nBefore we begin, let's set a master password for this program.\n"
           "Your master password will be required to access your stored passwords.")
@@ -256,20 +234,12 @@ def get_master_key():
 
     my_cursor.execute(get_master_query)
     master_key_found = my_cursor.fetchone()
-<<<<<<< HEAD
-    # split this up into 2 funcs, sql and fernet
-=======
->>>>>>> redo
     decrypted_master = fk.decrypt(master_key_found[0].encode())
 
     return decrypted_master
 
 
 def master_login():
-<<<<<<< HEAD
-    # goes in sql mods
-=======
->>>>>>> redo
     """Retrieves master key and allows access to db if matched correctly"""
 
     master_key = get_master_key().decode()
@@ -289,18 +259,11 @@ def master_login():
 
 
 requirements()
-<<<<<<< HEAD
-# requirments2()
-=======
->>>>>>> redo
 my_key = get_crypt_key()
 fk = Fernet(my_key)
 master_login()
 
-<<<<<<< HEAD
 
-=======
->>>>>>> redo
 print("Welcome to Password Manager!\n"
       "Your passwords will be encrypted and decrypted for viewing here.\n"
       "What would you like to do today?\n")
@@ -417,8 +380,4 @@ while True:
     else:
         print("\nCommand not recognized.\n")
 
-<<<<<<< HEAD
 # NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
-=======
-# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
->>>>>>> redo
