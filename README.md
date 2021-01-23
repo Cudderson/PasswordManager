@@ -1,1 +1,11 @@
-Refactoring the project in this branch. Will merge when I surpass progress of master branch.
+Password Manager with Fernet Cryptography
+(working on sql db refactor)
+- A more secure way to store personal information
+- Program uses a generated key to encrypt and save passwords to file
+- Users can quickly add, view, and modify their passwords safely
+
+Skills used:
+- File I/O
+- Fernet cryptography
+- Data-Type Management
+- Control Flow
