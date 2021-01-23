@@ -2,8 +2,6 @@ import mysql.connector
 
 from cryptography.fernet import Fernet
 
-# Structure project and deploy
-
 # Connect to database
 pw_db = mysql.connector.connect(
     host='localhost',
@@ -92,7 +90,7 @@ def get_crypt_key():
 
 
 def encrypt_password(pass_to_encrypt):
-    """Encrypts and returns the passed value as a Fernet token"""
+    """Encrypts and returns the passed value"""
 
     temp_key = get_crypt_key()
     tk = Fernet(temp_key)
@@ -258,6 +256,7 @@ def master_login():
         return master_login()
 
 
+# program start
 requirements()
 my_key = get_crypt_key()
 fk = Fernet(my_key)
@@ -292,7 +291,6 @@ while True:
             confirm_new_entry = input("\nType 'confirm' to proceed if this is correct. ('q' to quit): ")
 
             if confirm_new_entry == 'confirm':
-                # encrypt password and send entry to insert_entry
 
                 encrypted_pass = encrypt_password(new_pass)
                 insert_entry(new_site, encrypted_pass)
@@ -379,5 +377,3 @@ while True:
 
     else:
         print("\nCommand not recognized.\n")
-
-# NOTE: SQL db will not be uploaded to github. instead, just include a copy of the schema. (seed info)
