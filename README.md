@@ -1,11 +1,9 @@
-Password Manager with Fernet Cryptography
-(working on sql db refactor)
-- A more secure way to store personal information
-- Program uses a generated key to encrypt and save passwords to file
-- Users can quickly add, view, and modify their passwords safely
+Password Manager with Fernet Cryptography and MySQL
 
-Skills used:
-- File I/O
-- Fernet cryptography
-- Data-Type Management
-- Control Flow
+- A small program that uses symmetric encryption to handle data to/from database
+- With symmetric encryption, we use the original generated key to both encrypt and decrypt our data.
+
+Read more about Fernet cryptography here: https://cryptography.io/en/latest/fernet.html
+
+
+** This is a personal project, and is not intended to be the end-all place to store your personal information **
